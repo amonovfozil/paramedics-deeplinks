@@ -4,257 +4,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramedics Dr - Professional Medical App</title>
-    <meta name="description" content="Download Paramedics Dr app for medical professionals">
-
-    <!-- Favicon -->
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
-
-    <!-- iOS Meta Tags -->
-    <meta name="apple-itunes-app" content="app-id=6469779193">
-    <meta property="al:ios:url" content="paramedicsdr://deeplink">
-    <meta property="al:ios:app_store_id" content="6469779193">
-    <meta property="al:ios:app_name" content="Paramedics Dr">
-
-    <!-- Android Meta Tags -->
-    <meta property="al:android:url" content="paramedicsdr://deeplink">
-    <meta property="al:android:app_name" content="Paramedics Dr">
-    <meta property="al:android:package" content="com.paramedics.paramedicsuz_doctor">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Paramedics Dr">
-    <meta property="og:description" content="Professional medical application for doctors">
-    <meta property="og:image" content="https://paramedics-deeplinks.vercel.app/og-image.png">
-    <meta property="og:url" content="https://paramedics-deeplinks.vercel.app">
-    <meta property="og:type" content="website">
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Paramedics Dr">
-    <meta name="twitter:description" content="Professional medical application for doctors">
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Preconnect -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="https://paramedics-deeplinks.vercel.app/apple-touch-icon.png">
-
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#1a73e8">
-    <meta name="msapplication-TileColor" content="#1a73e8">
-</head>
-
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">🏥</div>
-                <h1>Paramedics Dr</h1>
-            </div>
-            <p class="tagline">Professional Medical Platform</p>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Referral Info Card -->
-            <div class="card referral-card" id="referralCard">
-                <div class="card-header">
-                    <h2>🎉 Invitation Received</h2>
-                </div>
-                <div class="card-body">
-                    <div class="referral-info">
-                        <div class="info-row" id="referrerRow">
-                            <span class="info-label">Invited by:</span>
-                            <span class="info-value" id="referrerName">Loading...</span>
-                        </div>
-                        <div class="info-row" id="codeRow">
-                            <span class="info-label">Referral Code:</span>
-                            <span class="info-value code-value" id="referralCode">-----</span>
-                        </div>
-                        <div class="info-row" id="campaignRow">
-                            <span class="info-label">Campaign:</span>
-                            <span class="info-value" id="campaignName">General Invitation</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Loading Section -->
-            <div class="loading-section" id="loadingSection">
-                <div class="loader-container">
-                    <div class="spinner"></div>
-                    <div class="dots">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <p class="status-text" id="statusText">Opening Paramedics Dr app...</p>
-            </div>
-
-            <!-- Store Buttons (Hidden by default) -->
-            <div class="store-section" id="storeSection">
-                <h3>Download the App</h3>
-                <p class="store-subtitle">App not detected. Download to accept invitation:</p>
-
-                <div class="store-buttons">
-                    <a href="https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor"
-                        class="store-btn android-btn" target="_blank" rel="noopener">
-                        <div class="btn-icon">
-                            <svg viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor"
-                                    d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
-                            </svg>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title">Google Play</span>
-                            <span class="btn-subtitle">Download for Android</span>
-                        </div>
-                    </a>
-
-                    <a href="https://apps.apple.com/uz/app/paramedics-dr/id6469779193" class="store-btn ios-btn"
-                        target="_blank" rel="noopener">
-                        <div class="btn-icon">
-                            <svg viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor"
-                                    d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z" />
-                            </svg>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title">App Store</span>
-                            <span class="btn-subtitle">Download for iOS</span>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="manual-instruction">
-                    <p>After installing, open this link again or open the app manually.</p>
-                </div>
-            </div>
-
-            <!-- App Features -->
-            <div class="features-section">
-                <h3>App Features</h3>
-                <div class="features-grid">
-                    <div class="feature">
-                        <div class="feature-icon">📋</div>
-                        <h4>Patient Management</h4>
-                        <p>Manage patient records efficiently</p>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">💊</div>
-                        <h4>Prescriptions</h4>
-                        <p>Create and share prescriptions</p>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">👥</div>
-                        <h4>Referral System</h4>
-                        <p>Invite colleagues and earn rewards</p>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">📊</div>
-                        <h4>Analytics</h4>
-                        <p>Track your medical practice</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="https://paramedics-deeplinks.vercel.app/privacy" class="footer-link">Privacy Policy</a>
-                    <span class="separator">•</span>
-                    <a href="https://paramedics-deeplinks.vercel.app/terms" class="footer-link">Terms of Service</a>
-                    <span class="separator">•</span>
-                    <a href="https://paramedics-deeplinks.vercel.app/contact" class="footer-link">Contact</a>
-                </div>
-                <p class="copyright">© 2024 Paramedics Dr. All rights reserved.</p>
-                <p class="version">Deep Link Version 2.0</p>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Scripts -->
-    <script src="script.js"></script>
-</body>
-
-</html>
-
-
-
-
-<!-- <!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
     <title>Paramedics Dr</title>
+
+    <!-- iOS Universal Links -->
+    <meta name="apple-itunes-app" content="app-id=6469779193">
+
     <style>
-        body {
+        /* RESET */
+        * {
             margin: 0;
             padding: 0;
-            background: white;
-            font-family: Arial;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            /* OQ FON */
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             text-align: center;
+            padding: 20px;
         }
 
         .container {
             max-width: 400px;
-            padding: 20px;
+            width: 100%;
         }
 
         .logo {
             width: 80px;
             height: 80px;
-            background: #1a73e8;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
             border-radius: 20px;
             margin: 0 auto 20px;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
         }
 
         h1 {
             color: #333;
             margin-bottom: 10px;
+            font-size: 24px;
         }
 
-        p {
+        .subtitle {
             color: #666;
             margin-bottom: 30px;
         }
 
+        /* LOADER */
+        .loader-container {
+            margin: 30px 0;
+        }
+
         .loader {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border: 4px solid #f0f0f0;
             border-top: 4px solid #1a73e8;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 0 auto;
         }
 
+        /* STATUS */
+        .status {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+            min-height: 40px;
+        }
+
+        /* ANIMATIONS */
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -265,55 +93,224 @@
             }
         }
 
-        .status {
-            color: #666;
-            font-size: 14px;
-            margin-top: 20px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
     </style>
-    <script>
-        const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
-        const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
-
-        function startRedirect() {
-            document.getElementById('status').textContent = 'Opening app...';
-
-            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const isAndroid = /Android/.test(navigator.userAgent);
-
-            // App ni ochishga urinish
-            setTimeout(() => {
-                window.location.href = 'paramedicsdr://deeplink';
-                document.getElementById('status').textContent = 'Trying to open app...';
-            }, 800);
-
-            // Store ga o'tish
-            setTimeout(() => {
-                document.getElementById('status').textContent = 'Redirecting to store...';
-                if (isIOS) {
-                    window.location.href = APP_STORE;
-                } else if (isAndroid) {
-                    window.location.href = PLAY_STORE;
-                } else {
-                    window.location.href = PLAY_STORE;
-                }
-            }, 2000);
-        }
-
-        window.onload = function () {
-            setTimeout(startRedirect, 500);
-        };
-    </script>
 </head>
 
 <body>
     <div class="container">
         <div class="logo">P</div>
+
         <h1>Paramedics Dr</h1>
-        <p>Opening application...</p>
-        <div class="loader"></div>
+        <p class="subtitle">Opening app...</p>
+
+        <!-- LOADER -->
+        <div class="loader-container">
+            <div class="loader"></div>
+        </div>
+
+        <!-- STATUS -->
         <div class="status" id="status">Initializing...</div>
     </div>
+
+    <script>
+        // ====== KONFIGURATSIYA ======
+        const CONFIG = {
+            APP_SCHEME: 'paramedicsdr://deeplink',
+            PLAY_STORE: 'market://details?id=com.paramedics.paramedicsuz_doctor',
+            PLAY_STORE_WEB: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
+            APP_STORE: 'itms-apps://itunes.apple.com/app/id6469779193',
+            APP_STORE_WEB: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
+
+            // Vaqt sozlamalari
+            APP_OPEN_DELAY: 800,    // App ochish uchun
+            STORE_REDIRECT_DELAY: 1500, // Store ga o'tish uchun
+            TOTAL_TIMEOUT: 2500,    // Umumiy timeout
+
+            // Xotira
+            STORAGE_KEY: 'paramedics_referral',
+            STORAGE_EXPIRY_DAYS: 7
+        };
+
+        // ====== ELEMENTLAR ======
+        const statusEl = document.getElementById('status');
+
+        // ====== FUNKSIYALAR ======
+
+        // Platformani aniqlash
+        function detectPlatform() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+                return 'ios';
+            } else if (/Android/.test(ua)) {
+                return 'android';
+            } else {
+                return 'desktop';
+            }
+        }
+
+        // URL parametrlarini olish
+        function getUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = {};
+
+            // Faqat referral_code kerak
+            if (urlParams.has('referral_code')) {
+                params.referral_code = urlParams.get('referral_code');
+            }
+
+            // Agar user_id va page_name ham bo'lsa
+            if (urlParams.has('user_id')) {
+                params.user_id = urlParams.get('user_id');
+            }
+            if (urlParams.has('page_name')) {
+                params.page_name = urlParams.get('page_name');
+            }
+
+            return Object.keys(params).length > 0 ? params : null;
+        }
+
+        // Xotiraga saqlash (LocalStorage)
+        function saveToStorage(params) {
+            if (!params) return;
+
+            try {
+                const storageData = {
+                    params: params,
+                    timestamp: Date.now(),
+                    expires: Date.now() + (CONFIG.STORAGE_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+                };
+
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(storageData));
+                console.log('✅ Parametrlar xotirada saqlandi');
+
+            } catch (e) {
+                console.log('❌ Xotirada saqlashda xato:', e);
+            }
+        }
+
+        // Status yangilash
+        function updateStatus(message) {
+            statusEl.textContent = message;
+        }
+
+        // App ochish (Universal Link orqali)
+        function openApp(params) {
+            // App link yaratish
+            let appLink = CONFIG.APP_SCHEME;
+            if (params) {
+                const query = new URLSearchParams(params).toString();
+                appLink += '?' + query;
+            }
+
+            console.log('🔄 App ochilmoqda:', appLink);
+            updateStatus('Opening Paramedics Dr...');
+
+            // App ni ochishga urinish
+            window.location.href = appLink;
+        }
+
+        // Store ga o'tish
+        function redirectToStore(platform) {
+            console.log(`🛒 ${platform.toUpperCase()} Store ga o'tilmoqda`);
+
+            if (platform === 'ios') {
+                // iOS - AppStore app yoki Safari
+                updateStatus('Redirecting to App Store...');
+
+                // Avval AppStore app ni ochishga urinish
+                window.location.href = CONFIG.APP_STORE;
+
+                // Agar 1 soniyada ochilmasa, Safari ga
+                setTimeout(() => {
+                    window.location.href = CONFIG.APP_STORE_WEB;
+                }, 1000);
+
+            } else if (platform === 'android') {
+                // Android - Play Market app yoki browser
+                updateStatus('Redirecting to Play Store...');
+
+                // Avval Play Market app ni ochishga urinish
+                window.location.href = CONFIG.PLAY_STORE;
+
+                // Agar 1 soniyada ochilmasa, browser ga
+                setTimeout(() => {
+                    window.location.href = CONFIG.PLAY_STORE_WEB;
+                }, 1000);
+
+            } else {
+                // Desktop - Play Store web
+                updateStatus('Redirecting to Play Store...');
+                window.location.href = CONFIG.PLAY_STORE_WEB;
+            }
+        }
+
+        // Asosiy funksiya
+        function handleDeepLink() {
+            const platform = detectPlatform();
+            const params = getUrlParams();
+
+            console.log('📱 Platforma:', platform);
+            console.log('📦 Parametrlar:', params);
+
+            // 1. Parametrlarni xotirada saqlash
+            saveToStorage(params);
+
+            // 2. App ochishga urinish
+            setTimeout(() => {
+                openApp(params);
+            }, CONFIG.APP_OPEN_DELAY);
+
+            // 3. Agar app ochilmasa, Store ga o'tish
+            setTimeout(() => {
+                redirectToStore(platform);
+            }, CONFIG.STORE_REDIRECT_DELAY);
+        }
+
+        // ====== ISHGA TUSHIRISH ======
+
+        // Sahifa yuklanganda
+        window.addEventListener('DOMContentLoaded', function () {
+            updateStatus('Detecting platform...');
+
+            // 0.5 soniya kutib, ishga tushirish
+            setTimeout(handleDeepLink, 500);
+        });
+
+        // Agar user qaytib kelsa (app ochilmagan bo'lsa)
+        let appOpened = false;
+
+        window.addEventListener('blur', function () {
+            appOpened = true;
+            console.log('✅ App ochildi (blur event)');
+        });
+
+        window.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && !appOpened) {
+                // User qaytib keldi - app ochilmagan
+                console.log('↩️ User qaytdi - app ochilmagan');
+
+                // Store ga to'g'ridan-to'g'ri o'tish
+                const platform = detectPlatform();
+                redirectToStore(platform);
+            }
+        });
+
+        // Agar sahifa yopilayotgan bo'lsa
+        window.addEventListener('beforeunload', function () {
+            appOpened = true;
+        });
+
+    </script>
 </body>
 
-</html> -->
+</html>
