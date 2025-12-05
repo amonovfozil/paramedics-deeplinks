@@ -4,422 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramedics Dr</title>
-
-    <style>
-        /* RESET */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #ffffff;
-            /* OQ FON */
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 400px;
-            width: 100%;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-            border-radius: 20px;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        /* LOADER */
-        .loader-container {
-            margin: 30px 0;
-        }
-
-        .loader {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f0f0f0;
-            border-top: 4px solid #1a73e8;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        /* STATUS */
-        .status {
-            color: #666;
-            font-size: 14px;
-            margin-top: 20px;
-            min-height: 40px;
-        }
-
-        /* ANIMATIONS */
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* HIDDEN */
-        .hidden {
-            display: none !important;
-        }
-    </style>
+    <title>Paramedics App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!-- Universal Link meta teglar (iOS) -->
+    <meta property="al:ios:url" content="paramedics://open" />
+    <meta property="al:ios:app_store_id" content="1234567890" />
+    <meta property="al:ios:app_name" content="Paramedics" />
+    <meta property="al:android:url" content="paramedics://open" />
+    <meta property="al:android:app_name" content="Paramedics" />
+    <meta property="al:android:package" content="com.example.paramedics" />
+    <meta property="al:web:url" content="https://paramedics-web.com" />
 </head>
 
 <body>
     <div class="container">
-        <div class="logo">P</div>
-
-        <h1>Paramedics Dr</h1>
-        <p class="subtitle">Opening app...</p>
-
-        <!-- LOADER -->
-        <div class="loader-container">
-            <div class="loader"></div>
+        <div class="loader">
+            <div class="spinner"></div>
+            <p>Opening Paramedics App...</p>
+            <p class="redirect-message">If not redirected automatically, <a href="#" id="manualRedirect">click here</a>
+            </p>
         </div>
-
-        <!-- STATUS -->
-        <div class="status" id="status">Initializing...</div>
     </div>
 
+    <script src="script.js"></script>
     <script>
-        // ====== KONFIGURATSIYA ======
-        const CONFIG = {
-            APP_SCHEME: 'paramedicsdr://deeplink',
+        // Qo'lda redirect uchun
+        document.getElementById('manualRedirect').addEventListener('click', function (e) {
+            e.preventDefault();
+            const platform = detectPlatform ? detectPlatform() : 'web';
 
-            // Store scheme lar
-            PLAY_STORE_APP: 'market://details?id=com.paramedics.paramedicsuz_doctor',
-            PLAY_STORE_WEB: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
-
-            APP_STORE_APP: 'itms-apps://itunes.apple.com/app/id6469779193',
-            APP_STORE_WEB: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
-
-            // Vaqt sozlamalari
-            INIT_DELAY: 300,
-            APP_REDIRECT_DELAY: 500,
-            STORE_REDIRECT_DELAY: 1200,
-            WEB_REDIRECT_DELAY: 1800,
-            CLOSE_DELAY: 100,
-
-            // Xotira
-            STORAGE_KEY: 'paramedics_referral',
-            STORAGE_EXPIRY_DAYS: 7
-        };
-
-        // ====== ELEMENTLAR ======
-        const statusEl = document.getElementById('status');
-
-        // ====== STATE ======
-        let state = {
-            platform: null,
-            params: null,
-            redirectAttempted: false,
-            storeAppOpened: false,
-            appOpened: false,
-            shouldCloseBrowser: true, // Android uchun birinchi marta yopish
-            sessionId: Date.now() + Math.random().toString(36).substr(2, 9)
-        };
-
-        // ====== UTILITY FUNKSIYALAR ======
-
-        // Platform aniqlash
-        function detectPlatform() {
-            const ua = navigator.userAgent;
-            if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
-            if (/Android/.test(ua)) return 'android';
-            return 'desktop';
-        }
-
-        // Parametr olish
-        function getUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const params = {};
-
-            if (urlParams.has('referral_code')) params.referral_code = urlParams.get('referral_code');
-            if (urlParams.has('user_id')) params.user_id = urlParams.get('user_id');
-            if (urlParams.has('page_name')) params.page_name = urlParams.get('page_name');
-
-            return Object.keys(params).length > 0 ? params : null;
-        }
-
-        // Xotiraga saqlash
-        function saveToStorage(params) {
-            if (!params) return;
-
-            try {
-                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({
-                    params: params,
-                    timestamp: Date.now(),
-                    sessionId: state.sessionId
-                }));
-            } catch (e) { }
-        }
-
-        // Status yangilash
-        function updateStatus(message) {
-            if (statusEl) statusEl.textContent = message;
-            console.log('📢', message);
-        }
-
-        // Browser yopish
-        function closeBrowser() {
-            if (!state.shouldCloseBrowser) return;
-
-            console.log('🚪 Closing browser...');
-
-            try {
-                // 1. history back
-                if (window.history.length > 1) {
-                    window.history.back();
-                    return true;
-                }
-
-                // 2. blank page
-                document.body.innerHTML = '<div style="display:none"></div>';
-
-                // 3. window.close
-                setTimeout(() => {
-                    try { window.close(); } catch (e) { }
-                }, 50);
-
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }
-
-        // AppStore/PlayMarket app borligini tekshirish
-        function isStoreAppAvailable() {
-            // Bu faqat taxminiy tekshiruv
-            // Haqiqiy tekshirish mumkin emas
-            return true; // Har doim true qaytarish, chunki fallback bor
-        }
-
-        // ====== REDIRECT FUNKSIYALARI ======
-
-        // App ga redirect
-        function redirectToApp() {
-            if (state.redirectAttempted) return;
-            state.redirectAttempted = true;
-
-            console.log('🔄 Redirecting to app...');
-            updateStatus('Opening Paramedics Dr...');
-
-            let appLink = CONFIG.APP_SCHEME;
-            if (state.params) {
-                const query = new URLSearchParams(state.params).toString();
-                appLink += '?' + query;
-            }
-
-            // Iframe orqali background redirect
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = appLink;
-            document.body.appendChild(iframe);
-
-            // Asosiy window
-            setTimeout(() => {
-                window.location.href = appLink;
-            }, 10);
-        }
-
-        // Store APP ga redirect (agar app bor bo'lsa)
-        function redirectToStoreApp() {
-            console.log('🛒 Redirecting to store app...');
-            updateStatus('Opening store app...');
-
-            // Store app borligini tekshirish
-            if (!isStoreAppAvailable()) {
-                console.log('⚠️ Store app not available, using web');
-                redirectToStoreWeb();
-                return;
-            }
-
-            if (state.platform === 'ios') {
-                window.location.href = CONFIG.APP_STORE_APP;
-            } else if (state.platform === 'android') {
-                window.location.href = CONFIG.PLAY_STORE_APP;
-            }
-
-            state.storeAppOpened = true;
-        }
-
-        // Store WEB ga redirect (fallback)
-        function redirectToStoreWeb() {
-            console.log('🌐 Redirecting to store web...');
-            updateStatus('Opening store in browser...');
-
-            // AppStore/PlayMarket app yo'q bo'lsa, browser YOPILMASIN
-            state.shouldCloseBrowser = false;
-
-            if (state.platform === 'ios') {
-                window.location.href = CONFIG.APP_STORE_WEB;
+            if (platform === 'android') {
+                window.location.href = 'https://play.google.com/store/apps/details?id=com.example.paramedics';
+            } else if (platform === 'ios') {
+                window.location.href = 'https://apps.apple.com/app/id1234567890';
             } else {
-                window.location.href = CONFIG.PLAY_STORE_WEB;
-            }
-        }
-
-        // ====== ASOSIY PROCESS ======
-
-        function startProcess() {
-            console.log('🚀 Starting process...');
-            console.log('Session ID:', state.sessionId);
-
-            // State ni to'ldirish
-            state.platform = detectPlatform();
-            state.params = getUrlParams();
-
-            console.log('📱 Platform:', state.platform);
-            console.log('📦 Params:', state.params);
-
-            // Android uchun birinchi marta yopish, keyingilari yopilmasin
-            if (state.platform === 'android') {
-                const lastSession = localStorage.getItem('last_android_session');
-                if (lastSession) {
-                    state.shouldCloseBrowser = false;
-                    console.log('🤖 Android: Not first time, keeping browser open');
-                }
-                localStorage.setItem('last_android_session', state.sessionId);
-            }
-
-            // Parametrlarni saqlash
-            saveToStorage(state.params);
-
-            // 1. App ga redirect
-            setTimeout(() => {
-                redirectToApp();
-            }, CONFIG.APP_REDIRECT_DELAY);
-
-            // 2. Browser ni yopish (agar kerak bo'lsa)
-            setTimeout(() => {
-                if (state.shouldCloseBrowser) {
-                    closeBrowser();
-                }
-            }, CONFIG.CLOSE_DELAY);
-
-            // 3. Store APP ga redirect
-            setTimeout(() => {
-                if (!state.appOpened) {
-                    redirectToStoreApp();
-                }
-            }, CONFIG.STORE_REDIRECT_DELAY);
-
-            // 4. Store WEB ga redirect (fallback)
-            setTimeout(() => {
-                if (!state.appOpened && !state.storeAppOpened) {
-                    redirectToStoreWeb();
-                }
-            }, CONFIG.WEB_REDIRECT_DELAY);
-        }
-
-        // ====== EVENT HANDLERS ======
-
-        // Blur event - app/store ochilganda
-        window.addEventListener('blur', function () {
-            console.log('🔴 Blur event - app/store opened');
-
-            // Agar app ochilsa
-            if (!state.appOpened) {
-                state.appOpened = true;
-                console.log('✅ App opened successfully');
-
-                // Browser ni yopish
-                setTimeout(() => {
-                    closeBrowser();
-                }, CONFIG.CLOSE_DELAY);
-            }
-
-            // Agar store app ochilsa
-            if (!state.storeAppOpened && !state.appOpened) {
-                state.storeAppOpened = true;
-                console.log('🛒 Store app opened');
-
-                // Browser ni yopish
-                setTimeout(() => {
-                    closeBrowser();
-                }, CONFIG.CLOSE_DELAY);
+                window.location.href = 'https://paramedics-web.com';
             }
         });
-
-        // Visibility change - user qaytib kelsa
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'visible') {
-                console.log('↩️ User returned to browser');
-
-                // User qaytib kelsa, app ochilmagan
-                if (!state.appOpened && !state.storeAppOpened) {
-                    console.log('⚠️ App not installed');
-
-                    // Store WEB ga redirect (browser YOPILMASIN)
-                    state.shouldCloseBrowser = false;
-                    redirectToStoreWeb();
-                }
-            }
-        });
-
-        // Page load
-        window.addEventListener('load', function () {
-            console.log('✅ Page loaded');
-            updateStatus('Ready...');
-
-            // Process ni boshlash
-            setTimeout(startProcess, CONFIG.INIT_DELAY);
-        });
-
-        // Page before unload
-        window.addEventListener('beforeunload', function () {
-            console.log('📄 Page unloading');
-        });
-
-        // ====== INITIALIZATION ======
-
-        // DOM ready bo'lganda
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function () {
-                updateStatus('Starting...');
-                console.log('🎯 DOM ready');
-            });
-        } else {
-            updateStatus('Starting...');
-            console.log('🎯 DOM already ready');
-        }
-
-        // Error handling
-        window.addEventListener('error', function (event) {
-            console.error('❌ Error:', event.error);
-        });
-
     </script>
 </body>
 
