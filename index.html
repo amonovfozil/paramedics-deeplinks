@@ -80,89 +80,58 @@
             const ua = navigator.userAgent.toLowerCase();
             const isIOS = /iphone|ipad|ipod/.test(ua);
             const isAndroid = /android/.test(ua);
-            const isMacOS = /macintosh/.test(ua) && !isIOS;
-            return {
-                isIOS,
-                isAndroid,
-                isMobile: isIOS || isAndroid,
-                isApple: isIOS || isMacOS
-            };
+            return { isIOS, isAndroid, isMobile: isIOS || isAndroid, isApple: isIOS || /macintosh/.test(ua) && !isIOS };
         }
 
         function buildUrls(referralCode, isApple) {
-            const storeUrl = (isApple ? APP_STORE : PLAY_STORE) + (referralCode ? (referralCode.includes('?') ? '&' : '?') + 'referral_code=' + encodeURIComponent(referralCode) : '');
+            const base = isApple ? APP_STORE : PLAY_STORE;
+            let storeUrl = base + (referralCode ? (base.includes('?') ? '&' : '?') + 'referral_code=' + encodeURIComponent(referralCode) : '');
             const deeplink = 'paramedicsdr://deeplink' + (referralCode ? '?referral_code=' + encodeURIComponent(referralCode) : '');
             return { storeUrl, deeplink };
         }
 
         function setupAppOpenDetection(callback) {
             let appOpened = false;
-            const clearAndMark = () => {
-                if (!appOpened) {
-                    appOpened = true;
-                    callback();
-                }
-            };
-            const handleVisibility = () => document.hidden && clearAndMark();
-            const handleBlur = () => clearAndMark();
-            document.addEventListener('visibilitychange', handleVisibility);
-            window.addEventListener('blur', handleBlur);
-            return { handleVisibility, handleBlur };
+            const clearAndMark = () => { if (!appOpened) { appOpened = true; callback(); } };
+            document.addEventListener('visibilitychange', () => document.hidden && clearAndMark());
+            window.addEventListener('blur', clearAndMark);
+            return () => { document.removeEventListener('visibilitychange', arguments.callee); window.removeEventListener('blur', arguments.callee); };  // Cleanup
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard) navigator.clipboard.writeText(text);
+            else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
         }
 
         function startRedirect() {
             const statusEl = document.getElementById('status');
             statusEl.textContent = 'Opening app...';
 
-            // Parse and store referral code
             const urlParams = new URLSearchParams(window.location.search);
             const referralCode = urlParams.get('referral_code');
-            if (referralCode && localStorage) {
-                localStorage.setItem('paramedics_referral_code', referralCode);
-            }
+            if (referralCode && localStorage) localStorage.setItem('paramedics_referral_code', referralCode);
 
-            const { isMobile, isApple, isAndroid } = getPlatform();
+            const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
+            // Android referrer (UTM format)
+            if (isAndroid && referralCode) {
+                storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
+            }
+
+            // iOS clipboard
+            if (isIOS && referralCode) copyToClipboard(`referral:${referralCode}`);
+
             let redirectTimeout;
-            const { handleVisibility, handleBlur } = setupAppOpenDetection(() => {
+            const cleanup = setupAppOpenDetection(() => {
                 clearTimeout(redirectTimeout);
                 statusEl.textContent = 'App opened successfully!';
             });
 
             if (isMobile) {
-                // Referral kodni clipboard'ga nusxala (iOS deferred uchun)
-                if (referralCode) {
-                    const clipboardText = `paramedics_referral_code:${referralCode}`; // Format: key:value
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(clipboardText).catch(err => console.error('Clipboard xatosi:', err));
-                    } else {
-                        // Fallback
-                        const textArea = document.createElement('textarea');
-                        textArea.value = clipboardText;
-                        document.body.appendChild(textArea);
-                        textArea.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(textArea);
-                    }
-                }
-                // Android uchun referrer qo'shish (storeUrl'ga)
-                if (isAndroid && referralCode) {
-                    storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=${encodeURIComponent('utm_source%3Ddeep_link%26utm_campaign%3Dreferral%26referral_code%3D' + referralCode)}`;
-                }
+                const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = deeplink; document.body.appendChild(iframe);
+                setTimeout(() => { document.body.removeChild(iframe); statusEl.textContent = 'Trying to open app...'; }, 500);
 
-                // Mobile: Iframe deeplink attempt
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = deeplink;
-                document.body.appendChild(iframe);
-
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    statusEl.textContent = 'Trying to open app...';
-                }, 500);
-
-                // Timeout: close then redirect
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
@@ -170,20 +139,11 @@
                         setTimeout(() => window.location.href = storeUrl, 100);
                     }
                 }, 2500);
-
             } else {
-                // Desktop: Direct redirect
-                setTimeout(() => {
-                    statusEl.textContent = 'Redirecting to store...';
-                    window.location.href = storeUrl;
-                }, 1000);
+                setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
             }
 
-            // Cleanup after 3s
-            setTimeout(() => {
-                document.removeEventListener('visibilitychange', handleVisibility);
-                window.removeEventListener('blur', handleBlur);
-            }, 3000);
+            setTimeout(cleanup, 3000);
         }
 
         window.onload = () => setTimeout(startRedirect, 500);
@@ -195,8 +155,8 @@
         <div class="logo">P</div>
         <h1>Paramedics Dr</h1>
         <p>Opening application...</p>
-        <div class="loader"></div>
         <div class="status" id="status">Initializing...</div>
+        <div class="loader"></div>
     </div>
 </body>
 
