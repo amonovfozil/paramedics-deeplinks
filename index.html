@@ -143,6 +143,12 @@
         // ====== ELEMENTLAR ======
         const statusEl = document.getElementById('status');
 
+        // ====== HOLAT FLAGLARI ======
+        let appOpened = false;          // Paramedics Dr ochildimi
+        let storeAttempted = false;     // Store ga yo'naltirish boshlandimi
+        let storeOpened = false;        // Store app ochildimi (visibility orqali)
+        let storeFallbackTimer = null;  // Store web fallback taymeri
+
         // ====== FUNKSIYALAR ======
 
         // Platformani aniqlash
@@ -221,37 +227,45 @@
 
         // Store ga o'tish
         function redirectToStore(platform) {
+            storeAttempted = true;
+
+            // Platformaga mos store URL lar
+            const storeUrls = platform === 'ios'
+                ? { app: CONFIG.APP_STORE, web: CONFIG.APP_STORE_WEB, label: 'App Store' }
+                : platform === 'android'
+                    ? { app: CONFIG.PLAY_STORE, web: CONFIG.PLAY_STORE_WEB, label: 'Play Store' }
+                    : { app: CONFIG.PLAY_STORE_WEB, web: CONFIG.PLAY_STORE_WEB, label: 'Play Store' };
+
             console.log(`🛒 ${platform.toUpperCase()} Store ga o'tilmoqda`);
 
-            if (platform === 'ios') {
-                // iOS - AppStore app yoki Safari
-                updateStatus('Redirecting to App Store...');
+            updateStatus(`Redirecting to ${storeUrls.label}...`);
 
-                // Avval AppStore app ni ochishga urinish
-                window.location.href = CONFIG.APP_STORE;
+            // Avval store app ni ochishga urinish
+            window.location.href = storeUrls.app;
 
-                // Agar 1 soniyada ochilmasa, Safari ga
-                setTimeout(() => {
-                    window.location.href = CONFIG.APP_STORE_WEB;
-                }, 1000);
+            // Fallback taymeri: agar store app ochilmasa web versiyaga o'tamiz
+            clearTimeout(storeFallbackTimer);
+            storeFallbackTimer = setTimeout(() => {
+                if (storeOpened) {
+                    // Store app ochildi -> sahifani yopishga harakat qilamiz
+                    tryCloseTab();
+                    return;
+                }
 
-            } else if (platform === 'android') {
-                // Android - Play Market app yoki browser
-                updateStatus('Redirecting to Play Store...');
+                // Store app yo'q -> shu sahifada web store ni ochamiz
+                window.location.href = storeUrls.web;
+            }, CONFIG.STORE_REDIRECT_DELAY);
+        }
 
-                // Avval Play Market app ni ochishga urinish
-                window.location.href = CONFIG.PLAY_STORE;
+        // Sahifani yopishga urinish (store app ochilganda)
+        function tryCloseTab() {
+            updateStatus('Store opened. You can close this tab.');
 
-                // Agar 1 soniyada ochilmasa, browser ga
-                setTimeout(() => {
-                    window.location.href = CONFIG.PLAY_STORE_WEB;
-                }, 1000);
-
-            } else {
-                // Desktop - Play Store web
-                updateStatus('Redirecting to Play Store...');
-                window.location.href = CONFIG.PLAY_STORE_WEB;
-            }
+            // about:blank ga almashtirib, keyin yopishga urinish
+            setTimeout(() => {
+                window.location.replace('about:blank');
+                window.close();
+            }, 200);
         }
 
         // Asosiy funksiya
@@ -272,6 +286,10 @@
 
             // 3. Agar app ochilmasa, Store ga o'tish
             setTimeout(() => {
+                if (appOpened) {
+                    console.log('✅ App ochildi, Store ga o\'tilmaydi');
+                    return;
+                }
                 redirectToStore(platform);
             }, CONFIG.STORE_REDIRECT_DELAY);
         }
@@ -287,14 +305,17 @@
         });
 
         // Agar user qaytib kelsa (app ochilmagan bo'lsa)
-        let appOpened = false;
-
         window.addEventListener('blur', function () {
             appOpened = true;
             console.log('✅ App ochildi (blur event)');
         });
 
         window.addEventListener('visibilitychange', function () {
+            if (storeAttempted && document.visibilityState === 'hidden') {
+                storeOpened = true;
+                console.log('🛍️ Store app ochildi (visibility hidden)');
+            }
+
             if (document.visibilityState === 'visible' && !appOpened) {
                 // User qaytib keldi - app ochilmagan
                 console.log('↩️ User qaytdi - app ochilmagan');
@@ -302,6 +323,13 @@
                 // Store ga to'g'ridan-to'g'ri o'tish
                 const platform = detectPlatform();
                 redirectToStore(platform);
+            }
+        });
+
+        // Sahifa tarixdan chiqayotganda (store/app ga ketganda)
+        window.addEventListener('pagehide', function () {
+            if (storeAttempted) {
+                storeOpened = true;
             }
         });
 
