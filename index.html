@@ -148,6 +148,7 @@
         let storeAttempted = false;     // Store ga yo'naltirish boshlandimi
         let storeOpened = false;        // Store app ochildimi (visibility orqali)
         let storeFallbackTimer = null;  // Store web fallback taymeri
+        let currentPlatform = null;     // Oxirgi aniqlangan platforma
 
         // ====== FUNKSIYALAR ======
 
@@ -271,6 +272,7 @@
         // Asosiy funksiya
         function handleDeepLink() {
             const platform = detectPlatform();
+            currentPlatform = platform;
             const params = getUrlParams();
 
             console.log('📱 Platforma:', platform);
@@ -304,16 +306,16 @@
             setTimeout(handleDeepLink, 500);
         });
 
-        // Agar user qaytib kelsa (app ochilmagan bo'lsa)
-        window.addEventListener('blur', function () {
-            appOpened = true;
-            console.log('✅ App ochildi (blur event)');
-        });
-
         window.addEventListener('visibilitychange', function () {
             if (storeAttempted && document.visibilityState === 'hidden') {
                 storeOpened = true;
                 console.log('🛍️ Store app ochildi (visibility hidden)');
+            }
+
+            // App ochilganini faqat mobile-da hidden bo'lganda belgilaymiz
+            if (!storeAttempted && document.visibilityState === 'hidden' && currentPlatform !== 'desktop') {
+                appOpened = true;
+                console.log('✅ App ochildi (visibility hidden)');
             }
 
             if (document.visibilityState === 'visible' && !appOpened) {
