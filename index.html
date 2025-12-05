@@ -4,84 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <title>Paramedics Dr</title>
-    <script>
-        // Simple detection
-        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-        const isMac = /Mac/.test(navigator.platform);
-        const isAndroid = /Android/.test(navigator.userAgent);
-
-        // Platform-specific handling
-        if (isIOS || isMac) {
-            // iOS/Mac - Open App Store immediately
-            window.location.href = "https://apps.apple.com/uz/app/paramedics-dr/id6469779193";
-
-            // Show close instructions after store opens
-            setTimeout(() => {
-                document.body.innerHTML = `
-                    <div style="text-align:center;padding:100px 20px;font-family:-apple-system,sans-serif;">
-                        <div style="width:60px;height:60px;background:#34C759;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;">✓</div>
-                        <h2 style="color:#333;margin-bottom:15px;">App Store Opened</h2>
-                        <p style="color:#666;margin-bottom:25px;line-height:1.5;">
-                            The App Store has been opened in a new tab.<br>
-                            You can now close this browser tab.
-                        </p>
-                        <div style="background:#F2F2F7;padding:20px;border-radius:12px;margin-top:30px;text-align:left;max-width:300px;margin-left:auto;margin-right:auto;">
-                            <strong style="color:#333;display:block;margin-bottom:10px;">How to close this tab:</strong>
-                            <ol style="color:#666;margin:0;padding-left:20px;">
-                                <li style="margin-bottom:8px;">Tap the "Tabs" button (two squares)</li>
-                                <li style="margin-bottom:8px;">Find this tab</li>
-                                <li>Swipe it up to close</li>
-                            </ol>
-                        </div>
-                    </div>
-                `;
-
-                // Try to minimize the page
-                try {
-                    window.history.replaceState(null, null, 'about:blank');
-                    document.title = "Done";
-                } catch (e) { }
-
-            }, 1000);
-
-        } else if (isAndroid) {
-            // Android - Use Intent with fallback
-            const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor";
-            const INTENT = `intent://#Intent;scheme=paramedicsdr;package=com.paramedics.paramedicsuz_doctor;S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`;
-
-            window.location.href = INTENT;
-
-        } else {
-            // Other platforms - Direct to Play Store
-            window.location.href = "https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor";
-        }
-    </script>
     <style>
         body {
             margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 0;
             background: white;
-            color: #333;
-            height: 100vh;
+            font-family: Arial;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            height: 100vh;
             text-align: center;
         }
 
-        .loading {
-            max-width: 300px;
+        .container {
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #1a73e8;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
         }
 
         .loader {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #1a73e8;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #1a73e8;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 30px auto;
+            margin: 20px auto;
         }
 
         @keyframes spin {
@@ -93,14 +65,112 @@
                 transform: rotate(360deg);
             }
         }
+
+        .status {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
     </style>
+    <script>
+        const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
+        const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
+
+        function startRedirect() {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = 'Opening app...';
+
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isIOS = /iphone|ipad|ipod/.test(userAgent);
+            const isAndroid = /android/.test(userAgent);
+            const isMacOS = /macintosh/.test(userAgent) && !isIOS;
+            const isMobile = isIOS || isAndroid;
+            const isApple = isIOS || isMacOS;
+
+            const storeUrl = isApple ? APP_STORE : PLAY_STORE;
+            const deeplink = 'paramedicsdr://deeplink';
+
+            let redirectTimeout;
+            let appOpened = false;
+
+            const clearAndMarkOpened = () => {
+                if (!appOpened) {
+                    appOpened = true;
+                    clearTimeout(redirectTimeout);
+                    statusEl.textContent = 'App opened successfully!';
+                }
+            };
+
+            // Event listeners for detecting app open
+            const handleVisibilityChange = () => {
+                if (document.hidden) {
+                    clearAndMarkOpened();
+                }
+            };
+
+            const handleBlur = () => {
+                clearAndMarkOpened();
+            };
+
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('blur', handleBlur);
+
+            if (isMobile) {
+                // Mobile: Attempt deeplink via iframe to avoid navigation issues
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = deeplink;
+                document.body.appendChild(iframe);
+
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    statusEl.textContent = 'Trying to open app...';
+                }, 500);
+
+                // Timeout to redirect if app not opened
+                redirectTimeout = setTimeout(() => {
+                    if (!appOpened) {
+                        statusEl.textContent = 'Redirecting to store...';
+                        // Attempt to close window (may not work, but harmless)
+                        window.close();
+                        // Fallback redirect
+                        setTimeout(() => {
+                            window.location.href = storeUrl;
+                        }, 100);
+                    }
+                }, 2500); // Slightly longer timeout for reliability
+
+            } else {
+                // Desktop/Other: Direct to store
+                setTimeout(() => {
+                    statusEl.textContent = 'Redirecting to store...';
+                    window.close();
+                    setTimeout(() => {
+                        window.location.href = storeUrl;
+                    }, 100);
+                }, 1000);
+            }
+
+            // Cleanup listeners after timeout or on unload
+            setTimeout(() => {
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                window.removeEventListener('blur', handleBlur);
+            }, 3000);
+        }
+
+        window.onload = function () {
+            setTimeout(startRedirect, 500);
+        };
+    </script>
 </head>
 
 <body>
-    <div class="loading">
-        <h2>Opening Paramedics Dr...</h2>
+    <div class="container">
+        <div class="logo">P</div>
+        <h1>Paramedics Dr</h1>
+        <p>Opening application...</p>
         <div class="loader"></div>
-        <p style="color:#666;">Please wait a moment</p>
+        <div class="status" id="status">Initializing...</div>
     </div>
 </body>
 
