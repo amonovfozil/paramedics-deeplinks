@@ -1,4 +1,202 @@
 <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramedics Dr - Professional Medical App</title>
+    <meta name="description" content="Download Paramedics Dr app for medical professionals">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
+
+    <!-- iOS Meta Tags -->
+    <meta name="apple-itunes-app" content="app-id=6469779193">
+    <meta property="al:ios:url" content="paramedicsdr://deeplink">
+    <meta property="al:ios:app_store_id" content="6469779193">
+    <meta property="al:ios:app_name" content="Paramedics Dr">
+
+    <!-- Android Meta Tags -->
+    <meta property="al:android:url" content="paramedicsdr://deeplink">
+    <meta property="al:android:app_name" content="Paramedics Dr">
+    <meta property="al:android:package" content="com.paramedics.paramedicsuz_doctor">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Paramedics Dr">
+    <meta property="og:description" content="Professional medical application for doctors">
+    <meta property="og:image" content="https://paramedics-deeplinks.vercel.app/og-image.png">
+    <meta property="og:url" content="https://paramedics-deeplinks.vercel.app">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Paramedics Dr">
+    <meta name="twitter:description" content="Professional medical application for doctors">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="https://paramedics-deeplinks.vercel.app/apple-touch-icon.png">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="msapplication-TileColor" content="#1a73e8">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">🏥</div>
+                <h1>Paramedics Dr</h1>
+            </div>
+            <p class="tagline">Professional Medical Platform</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Referral Info Card -->
+            <div class="card referral-card" id="referralCard">
+                <div class="card-header">
+                    <h2>🎉 Invitation Received</h2>
+                </div>
+                <div class="card-body">
+                    <div class="referral-info">
+                        <div class="info-row" id="referrerRow">
+                            <span class="info-label">Invited by:</span>
+                            <span class="info-value" id="referrerName">Loading...</span>
+                        </div>
+                        <div class="info-row" id="codeRow">
+                            <span class="info-label">Referral Code:</span>
+                            <span class="info-value code-value" id="referralCode">-----</span>
+                        </div>
+                        <div class="info-row" id="campaignRow">
+                            <span class="info-label">Campaign:</span>
+                            <span class="info-value" id="campaignName">General Invitation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="loading-section" id="loadingSection">
+                <div class="loader-container">
+                    <div class="spinner"></div>
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="status-text" id="statusText">Opening Paramedics Dr app...</p>
+            </div>
+
+            <!-- Store Buttons (Hidden by default) -->
+            <div class="store-section" id="storeSection">
+                <h3>Download the App</h3>
+                <p class="store-subtitle">App not detected. Download to accept invitation:</p>
+
+                <div class="store-buttons">
+                    <a href="https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor"
+                        class="store-btn android-btn" target="_blank" rel="noopener">
+                        <div class="btn-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor"
+                                    d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+                            </svg>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title">Google Play</span>
+                            <span class="btn-subtitle">Download for Android</span>
+                        </div>
+                    </a>
+
+                    <a href="https://apps.apple.com/uz/app/paramedics-dr/id6469779193" class="store-btn ios-btn"
+                        target="_blank" rel="noopener">
+                        <div class="btn-icon">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor"
+                                    d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z" />
+                            </svg>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title">App Store</span>
+                            <span class="btn-subtitle">Download for iOS</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="manual-instruction">
+                    <p>After installing, open this link again or open the app manually.</p>
+                </div>
+            </div>
+
+            <!-- App Features -->
+            <div class="features-section">
+                <h3>App Features</h3>
+                <div class="features-grid">
+                    <div class="feature">
+                        <div class="feature-icon">📋</div>
+                        <h4>Patient Management</h4>
+                        <p>Manage patient records efficiently</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💊</div>
+                        <h4>Prescriptions</h4>
+                        <p>Create and share prescriptions</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">👥</div>
+                        <h4>Referral System</h4>
+                        <p>Invite colleagues and earn rewards</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <h4>Analytics</h4>
+                        <p>Track your medical practice</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://paramedics-deeplinks.vercel.app/privacy" class="footer-link">Privacy Policy</a>
+                    <span class="separator">•</span>
+                    <a href="https://paramedics-deeplinks.vercel.app/terms" class="footer-link">Terms of Service</a>
+                    <span class="separator">•</span>
+                    <a href="https://paramedics-deeplinks.vercel.app/contact" class="footer-link">Contact</a>
+                </div>
+                <p class="copyright">© 2024 Paramedics Dr. All rights reserved.</p>
+                <p class="version">Deep Link Version 2.0</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+
+</html>
+
+
+
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -56,4 +254,4 @@
         <div class="status" id="status">Initializing...</div>
     </div>
 </body>
-</html>
+</html> -->
