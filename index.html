@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paramedics Dr</title>
 
+    <!-- iOS Universal Links -->
+    <meta name="apple-itunes-app" content="app-id=6469779193">
+
     <style>
         /* RESET */
         * {
@@ -90,9 +93,14 @@
             }
         }
 
-        /* HIDDEN */
-        .hidden {
-            display: none !important;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -114,23 +122,18 @@
     </div>
 
     <script>
-        // ====== TEZKOR KONFIGURATSIYA ======
+        // ====== KONFIGURATSIYA ======
         const CONFIG = {
             APP_SCHEME: 'paramedicsdr://deeplink',
-
-            // Store scheme lar
-            PLAY_STORE_APP: 'market://details?id=com.paramedics.paramedicsuz_doctor',
+            PLAY_STORE: 'market://details?id=com.paramedics.paramedicsuz_doctor',
             PLAY_STORE_WEB: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
-
-            APP_STORE_APP: 'itms-apps://itunes.apple.com/app/id6469779193',
+            APP_STORE: 'itms-apps://itunes.apple.com/app/id6469779193',
             APP_STORE_WEB: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
 
-            // TEZKOR Vaqtlar (MILLISEKUND)
-            INIT_DELAY: 200,        // Dastlabki kutish - 0.2s
-            APP_REDIRECT_DELAY: 400, // App redirect - 0.4s
-            STORE_REDIRECT_DELAY: 800, // Store redirect - 0.8s
-            CLOSE_IMMEDIATE: 50,    // Darhol yopish - 0.05s
-            CLOSE_SHORT: 100,       // Qisqa yopish - 0.1s
+            // Vaqt sozlamalari
+            APP_OPEN_DELAY: 800,    // App ochish uchun
+            STORE_REDIRECT_DELAY: 1500, // Store ga o'tish uchun
+            TOTAL_TIMEOUT: 2500,    // Umumiy timeout
 
             // Xotira
             STORAGE_KEY: 'paramedics_referral',
@@ -140,102 +143,68 @@
         // ====== ELEMENTLAR ======
         const statusEl = document.getElementById('status');
 
-        // ====== STATE ======
-        let state = {
-            platform: null,
-            params: null,
-            redirectStarted: false,
-            browserClosed: false
-        };
+        // ====== FUNKSIYALAR ======
 
-        // ====== UTILITY FUNKSIYALAR ======
-
-        // Tez platforma aniqlash
+        // Platformani aniqlash
         function detectPlatform() {
-            const ua = navigator.userAgent;
-            if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
-            if (/Android/.test(ua)) return 'android';
-            return 'desktop';
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+                return 'ios';
+            } else if (/Android/.test(ua)) {
+                return 'android';
+            } else {
+                return 'desktop';
+            }
         }
 
-        // Tez parametr olish
+        // URL parametrlarini olish
         function getUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             const params = {};
 
-            if (urlParams.has('referral_code')) params.referral_code = urlParams.get('referral_code');
-            if (urlParams.has('user_id')) params.user_id = urlParams.get('user_id');
-            if (urlParams.has('page_name')) params.page_name = urlParams.get('page_name');
+            // Faqat referral_code kerak
+            if (urlParams.has('referral_code')) {
+                params.referral_code = urlParams.get('referral_code');
+            }
+
+            // Agar user_id va page_name ham bo'lsa
+            if (urlParams.has('user_id')) {
+                params.user_id = urlParams.get('user_id');
+            }
+            if (urlParams.has('page_name')) {
+                params.page_name = urlParams.get('page_name');
+            }
 
             return Object.keys(params).length > 0 ? params : null;
         }
 
-        // Tez xotiraga saqlash
+        // Xotiraga saqlash (LocalStorage)
         function saveToStorage(params) {
             if (!params) return;
 
             try {
-                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({
+                const storageData = {
                     params: params,
-                    timestamp: Date.now()
-                }));
+                    timestamp: Date.now(),
+                    expires: Date.now() + (CONFIG.STORAGE_EXPIRY_DAYS * 24 * 60 * 60 * 1000)
+                };
+
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(storageData));
+                console.log('✅ Parametrlar xotirada saqlandi');
+
             } catch (e) {
-                // Xotira xatosi - e'tiborsiz qoldirish
+                console.log('❌ Xotirada saqlashda xato:', e);
             }
         }
 
         // Status yangilash
         function updateStatus(message) {
-            if (statusEl) statusEl.textContent = message;
+            statusEl.textContent = message;
         }
 
-        // ====== BROWSER YOPISH (AVVAL) ======
-
-        // Avval browser ni yopish
-        function closeBrowserFirst() {
-            if (state.browserClosed) return;
-            state.browserClosed = true;
-
-            console.log('🚪 Closing browser first...');
-
-            // 1. Eng tez usul - history.back()
-            try {
-                if (window.history.length > 1) {
-                    window.history.back();
-                    return true;
-                }
-            } catch (e) { }
-
-            // 2. Blank page ga o'tish
-            try {
-                // Minimal blank page
-                document.body.innerHTML = '<div style="display:none"></div>';
-
-                // Document ni close qilishga urinish
-                setTimeout(() => {
-                    try {
-                        if (window.close && !window.closed) {
-                            window.close();
-                        }
-                    } catch (e) { }
-                }, 10);
-
-                return true;
-            } catch (e) { }
-
-            return false;
-        }
-
-        // ====== REDIRECT (KEYIN) ======
-
-        // App ga redirect (iframe orqali)
-        function redirectToApp(params) {
-            if (state.redirectStarted) return;
-            state.redirectStarted = true;
-
-            console.log('🔄 Redirecting to app...');
-            updateStatus('Opening app...');
-
+        // App ochish (Universal Link orqali)
+        function openApp(params) {
             // App link yaratish
             let appLink = CONFIG.APP_SCHEME;
             if (params) {
@@ -243,134 +212,103 @@
                 appLink += '?' + query;
             }
 
-            // Iframe orqali redirect (background da)
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = appLink;
-            document.body.appendChild(iframe);
+            console.log('🔄 App ochilmoqda:', appLink);
+            updateStatus('Opening Paramedics Dr...');
 
-            // Asosiy window dan ham urinish
-            setTimeout(() => {
-                window.location.href = appLink;
-            }, 10);
+            // App ni ochishga urinish
+            window.location.href = appLink;
         }
 
-        // Store app ga redirect
-        function redirectToStoreApp() {
-            console.log('🛒 Redirecting to store app...');
-            updateStatus('Opening store...');
+        // Store ga o'tish
+        function redirectToStore(platform) {
+            console.log(`🛒 ${platform.toUpperCase()} Store ga o'tilmoqda`);
 
-            if (state.platform === 'ios') {
-                // iOS - AppStore app
-                window.location.href = CONFIG.APP_STORE_APP;
-            } else if (state.platform === 'android') {
-                // Android - Play Market app
-                window.location.href = CONFIG.PLAY_STORE_APP;
-            }
-        }
+            if (platform === 'ios') {
+                // iOS - AppStore app yoki Safari
+                updateStatus('Redirecting to App Store...');
 
-        // Store web ga redirect (fallback)
-        function redirectToStoreWeb() {
-            console.log('🌐 Redirecting to store web...');
-            updateStatus('Opening store in browser...');
+                // Avval AppStore app ni ochishga urinish
+                window.location.href = CONFIG.APP_STORE;
 
-            if (state.platform === 'ios') {
-                window.location.href = CONFIG.APP_STORE_WEB;
+                // Agar 1 soniyada ochilmasa, Safari ga
+                setTimeout(() => {
+                    window.location.href = CONFIG.APP_STORE_WEB;
+                }, 1000);
+
+            } else if (platform === 'android') {
+                // Android - Play Market app yoki browser
+                updateStatus('Redirecting to Play Store...');
+
+                // Avval Play Market app ni ochishga urinish
+                window.location.href = CONFIG.PLAY_STORE;
+
+                // Agar 1 soniyada ochilmasa, browser ga
+                setTimeout(() => {
+                    window.location.href = CONFIG.PLAY_STORE_WEB;
+                }, 1000);
+
             } else {
+                // Desktop - Play Store web
+                updateStatus('Redirecting to Play Store...');
                 window.location.href = CONFIG.PLAY_STORE_WEB;
             }
         }
 
-        // ====== ASOSIY LOGIKA ======
+        // Asosiy funksiya
+        function handleDeepLink() {
+            const platform = detectPlatform();
+            const params = getUrlParams();
 
-        function startProcess() {
-            console.log('⚡ Starting fast process...');
+            console.log('📱 Platforma:', platform);
+            console.log('📦 Parametrlar:', params);
 
-            // 1. State ni to'ldirish
-            state.platform = detectPlatform();
-            state.params = getUrlParams();
+            // 1. Parametrlarni xotirada saqlash
+            saveToStorage(params);
 
-            console.log('📱 Platform:', state.platform);
-            console.log('📦 Params:', state.params);
-
-            // 2. Parametrlarni saqlash (background da)
-            saveToStorage(state.params);
-
-            // 3. Avval browser ni yopishga urinish
+            // 2. App ochishga urinish
             setTimeout(() => {
-                closeBrowserFirst();
-            }, CONFIG.CLOSE_IMMEDIATE);
+                openApp(params);
+            }, CONFIG.APP_OPEN_DELAY);
 
-            // 4. App ga redirect
+            // 3. Agar app ochilmasa, Store ga o'tish
             setTimeout(() => {
-                redirectToApp(state.params);
-            }, CONFIG.APP_REDIRECT_DELAY);
-
-            // 5. Agar app ochilmagan bo'lsa, store app ga
-            setTimeout(() => {
-                if (state.platform === 'ios' || state.platform === 'android') {
-                    redirectToStoreApp();
-                }
+                redirectToStore(platform);
             }, CONFIG.STORE_REDIRECT_DELAY);
-
-            // 6. Agar store app ham ishlamasa, web ga (fallback)
-            setTimeout(() => {
-                redirectToStoreWeb();
-            }, CONFIG.STORE_REDIRECT_DELAY + 500);
         }
 
-        // ====== EVENT HANDLERS ======
+        // ====== ISHGA TUSHIRISH ======
 
-        // Page load bo'lganda
-        window.addEventListener('load', function () {
-            console.log('✅ Page loaded');
-            updateStatus('Ready...');
+        // Sahifa yuklanganda
+        window.addEventListener('DOMContentLoaded', function () {
+            updateStatus('Detecting platform...');
 
-            // Tezroq boshlash
-            setTimeout(startProcess, CONFIG.INIT_DELAY);
+            // 0.5 soniya kutib, ishga tushirish
+            setTimeout(handleDeepLink, 500);
         });
 
-        // Blur event - app/store ochilganda
+        // Agar user qaytib kelsa (app ochilmagan bo'lsa)
+        let appOpened = false;
+
         window.addEventListener('blur', function () {
-            console.log('🔴 App/Store opened');
-
-            // Darhol browser ni yopish
-            setTimeout(() => {
-                closeBrowserFirst();
-            }, CONFIG.CLOSE_IMMEDIATE);
+            appOpened = true;
+            console.log('✅ App ochildi (blur event)');
         });
 
-        // Visibility change - user qaytib kelsa
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'visible') {
-                console.log('↩️ User returned');
+        window.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && !appOpened) {
+                // User qaytib keldi - app ochilmagan
+                console.log('↩️ User qaytdi - app ochilmagan');
 
-                // User qaytib kelsa, store ga yo'naltirish
-                if (state.platform === 'ios' || state.platform === 'android') {
-                    redirectToStoreApp();
-                } else {
-                    redirectToStoreWeb();
-                }
-
-                // Yana yopishga urinish
-                setTimeout(() => {
-                    closeBrowserFirst();
-                }, CONFIG.CLOSE_SHORT);
+                // Store ga to'g'ridan-to'g'ri o'tish
+                const platform = detectPlatform();
+                redirectToStore(platform);
             }
         });
 
-        // ====== INITIALIZATION ======
-
-        // DOM ready bo'lganda ishga tushirish
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function () {
-                updateStatus('Starting...');
-                console.log('🎯 DOM ready');
-            });
-        } else {
-            updateStatus('Starting...');
-            console.log('🎯 DOM already ready');
-        }
+        // Agar sahifa yopilayotgan bo'lsa
+        window.addEventListener('beforeunload', function () {
+            appOpened = true;
+        });
 
     </script>
 </body>
