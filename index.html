@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Paramedics Dr</title>
+    <meta name="apple-itunes-app" content="app-id=6469779193">
+    <meta name="google-play-app" content="app-id=com.paramedics.paramedicsuz_doctor">
     <style>
         body {
             margin: 0;
@@ -71,6 +73,17 @@
             font-size: 14px;
             margin-top: 20px;
         }
+
+        .button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
     </style>
 </head>
 
@@ -78,126 +91,54 @@
     <div class="container">
         <div class="logo">P</div>
         <h1>Paramedics Dr</h1>
-        <p>Opening application...</p>
-        <div class="loader"></div>
-        <div class="status" id="status">Initializing...</div>
+        <p>Please choose an option:</p>
+
+        <button class="button" onclick="openAppStore()">Open in App Store</button>
+        <button class="button" onclick="openPlayStore()" style="background:#0d9d58;margin-left:10px;">Open in Play
+            Store</button>
+
+        <div class="status" id="status">Select your platform</div>
     </div>
 
     <script>
-        // Store URLs
         const APP_STORE_URL = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
         const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
 
-        // App deep link
-        const APP_DEEP_LINK = 'paramedicsdr://deeplink';
-
-        function getPlatform() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-
-            // iOS detection
-            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-                return 'ios';
-            }
-
-            // Android detection
-            if (/android/i.test(userAgent)) {
-                return 'android';
-            }
-
-            // Mac detection
-            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-            if (isMac) {
-                return 'mac';
-            }
-
-            return 'other';
+        function openAppStore() {
+            document.getElementById('status').textContent = 'Opening App Store...';
+            // iOS/Mac uchun
+            window.location.href = APP_STORE_URL;
         }
 
-        function redirectToStore(platform) {
-            let storeUrl = PLAY_STORE_URL;
-
-            if (platform === 'ios') {
-                storeUrl = APP_STORE_URL;
-            } else if (platform === 'mac') {
-                storeUrl = APP_STORE_URL; // macOS also uses App Store
-            }
-
-            // Store'ni yangi oynada ochish
-            window.open(storeUrl, '_blank');
-
-            // Joriy oynani yopishga urinish
-            setTimeout(() => {
-                try {
-                    window.close();
-                    // Agar close ishlamasa, sahifani redirect qilish
-                    if (!window.closed) {
-                        window.location.href = "about:blank";
-                    }
-                } catch (e) {
-                    // Xatolik bo'lsa, faqat blank sahifaga o'tkazish
-                    window.location.href = "about:blank";
-                }
-            }, 100);
+        function openPlayStore() {
+            document.getElementById('status').textContent = 'Opening Play Store...';
+            // Android va boshqa platformalar uchun
+            window.location.href = PLAY_STORE_URL;
         }
 
-        function tryOpenApp() {
-            const platform = getPlatform();
-            document.getElementById('status').textContent = `Detected: ${platform.toUpperCase()}`;
+        // Auto-detect and redirect
+        function autoDetectAndRedirect() {
+            const userAgent = navigator.userAgent.toLowerCase();
 
-            // 1. Avval app ni ochishga harakat qilish
-            setTimeout(() => {
-                document.getElementById('status').textContent = 'Trying to open app...';
-                window.location.href = APP_DEEP_LINK;
-            }, 500);
-
-            // 2. Agar app ochilmagan bo'lsa, Store ga o'tkazish
-            setTimeout(() => {
-                document.getElementById('status').textContent = 'Redirecting to Store...';
-                redirectToStore(platform);
-            }, 1500);
-
-            // 3. Agar 3 soniyadan keyin ham Store ga o'tmagan bo'lsa
-            setTimeout(() => {
-                if (document.visibilityState === 'visible') {
-                    const platform = getPlatform();
-                    redirectToStore(platform);
-                }
-            }, 3000);
+            if (userAgent.match(/iphone|ipad|ipod/)) {
+                // iOS
+                openAppStore();
+            } else if (userAgent.match(/android/)) {
+                // Android
+                openPlayStore();
+            } else if (navigator.platform.toLowerCase().indexOf('mac') > -1) {
+                // Mac
+                openAppStore();
+            } else {
+                // Other - show buttons
+                document.getElementById('status').textContent = 'Please select your device platform';
+            }
         }
 
-        // Visibility change handler - app ochilganini aniqlash uchun
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'hidden') {
-                // App ochildi, sahifani yopish
-                setTimeout(() => {
-                    try {
-                        window.close();
-                    } catch (e) {
-                        // Ignore errors
-                    }
-                }, 1000);
-            }
-        });
-
-        // Page blur handler - app ochilganini aniqlash uchun
-        window.addEventListener('blur', function () {
-            // App ochildi deb hisoblaymiz
-            setTimeout(() => {
-                try {
-                    window.close();
-                } catch (e) {
-                    // Ignore errors
-                }
-            }, 1000);
-        });
-
-        // Sahifa yuklanganda boshlash
+        // Automatically detect on page load
         window.addEventListener('load', function () {
-            setTimeout(tryOpenApp, 300);
+            setTimeout(autoDetectAndRedirect, 500);
         });
-
-        // Foydalanuvchi sahifani bossa ham ishga tushirish
-        document.addEventListener('click', tryOpenApp);
     </script>
 </body>
 
