@@ -4,6 +4,69 @@
 <head>
     <meta charset="UTF-8">
     <title>Paramedics Dr</title>
+    <script>
+        // Platforma aniqlash
+        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+        const isMac = /Mac/.test(navigator.platform);
+
+        if (isIOS || isMac) {
+            // iOS/Mac uchun
+            setTimeout(() => {
+                // Avval app ni ochishga urinish
+                window.location = "paramedicsdr://deeplink";
+
+                setTimeout(() => {
+                    // App Store ga o'tish
+                    window.location = "https://apps.apple.com/uz/app/paramedics-dr/id6469779193";
+
+                    // 1 soniyadan keyin sahifani blank qilish
+                    setTimeout(() => {
+                        document.body.innerHTML = `
+                            <div style="text-align:center;padding:100px 20px;">
+                                <h3>✅ App Store opened</h3>
+                                <p style="color:#666;margin-top:20px;">
+                                    You can now close this tab.
+                                </p>
+                                <button onclick="window.close()" 
+                                        style="margin-top:20px;padding:10px 20px;background:#1a73e8;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                    Close Tab
+                                </button>
+                            </div>
+                        `;
+
+                        // URL ni o'zgartirish
+                        try {
+                            window.history.replaceState(null, null, 'about:blank');
+                        } catch (e) { }
+                    }, 1000);
+
+                }, 1000);
+            }, 300);
+
+        } else {
+            // Android va boshqalar uchun
+            window.location.href = "https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor";
+        }
+    </script>
+</head>
+
+<body>
+    <div style="text-align:center;padding-top:100px;">
+        <div style="font-size:48px;color:#1a73e8;margin-bottom:20px;">P</div>
+        <h2>Opening Paramedics Dr...</h2>
+        <p>Please wait a moment.</p>
+    </div>
+</body>
+
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Paramedics Dr</title>
     <meta http-equiv="refresh"
         content="2;url=https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor">
     <script>
@@ -28,4 +91,4 @@
     </div>
 </body>
 
-</html>
+</html> -->
