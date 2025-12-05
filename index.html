@@ -144,11 +144,10 @@
         const statusEl = document.getElementById('status');
 
         // ====== HOLAT FLAGLARI ======
-        let appOpened = false;          // Paramedics Dr ochildimi
-        let storeAttempted = false;     // Store ga yo'naltirish boshlandimi
-        let storeOpened = false;        // Store app ochildimi (visibility orqali)
-        let storeFallbackTimer = null;  // Store web fallback taymeri
-        let currentPlatform = null;     // Oxirgi aniqlangan platforma
+        let appOpened = false;           // Paramedics Dr ochildimi
+        let storeAttempted = false;      // Store ga yo'naltirish boshlandimi
+        let storeFallbackTimer = null;   // Store fallback taymeri
+        let currentPlatform = null;      // Oxirgi aniqlangan platforma
 
         // ====== FUNKSIYALAR ======
 
@@ -158,6 +157,11 @@
 
             if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
                 return 'ios';
+            } else if (/Macintosh/.test(ua) && 'ontouchend' in document) {
+                // iPadOS desktop mode
+                return 'ios';
+            } else if (/Macintosh/.test(ua)) {
+                return 'mac';
             } else if (/Android/.test(ua)) {
                 return 'android';
             } else {
@@ -213,60 +217,56 @@
         // App ochish (Universal Link orqali)
         function openApp(params) {
             // App link yaratish
-            let appLink = CONFIG.APP_SCHEME;
-            if (params) {
-                const query = new URLSearchParams(params).toString();
-                appLink += '?' + query;
-            }
+            const query = params ? '?' + new URLSearchParams(params).toString() : '';
+            const appLink = CONFIG.APP_SCHEME + query;
 
             console.log('🔄 App ochilmoqda:', appLink);
             updateStatus('Opening Paramedics Dr...');
 
-            // App ni ochishga urinish
-            window.location.href = appLink;
+            if (currentPlatform === 'android') {
+                // Android: intent orqali fallback Play Store ilovasiga
+                const intentLink = `intent://deeplink${query}#Intent;scheme=paramedicsdr;package=com.paramedics.paramedicsuz_doctor;S.browser_fallback_url=${encodeURIComponent(CONFIG.PLAY_STORE_WEB)};end`;
+                window.location.href = intentLink;
+            } else {
+                // iOS, Mac, desktop: custom scheme
+                window.location.href = appLink;
+            }
         }
 
         // Store ga o'tish
         function redirectToStore(platform) {
             storeAttempted = true;
 
-            // Platformaga mos store URL lar
-            const storeUrls = platform === 'ios'
-                ? { app: CONFIG.APP_STORE, web: CONFIG.APP_STORE_WEB, label: 'App Store' }
-                : platform === 'android'
-                    ? { app: CONFIG.PLAY_STORE, web: CONFIG.PLAY_STORE_WEB, label: 'Play Store' }
-                    : { app: CONFIG.PLAY_STORE_WEB, web: CONFIG.PLAY_STORE_WEB, label: 'Play Store' };
-
             console.log(`🛒 ${platform.toUpperCase()} Store ga o'tilmoqda`);
 
-            updateStatus(`Redirecting to ${storeUrls.label}...`);
+            if (platform === 'ios' || platform === 'mac') {
+                updateStatus('Redirecting to App Store...');
+                window.location.href = CONFIG.APP_STORE;
 
-            // Avval store app ni ochishga urinish
-            window.location.href = storeUrls.app;
+                clearTimeout(storeFallbackTimer);
+                storeFallbackTimer = setTimeout(() => {
+                    if (!appOpened) {
+                        window.location.href = CONFIG.APP_STORE_WEB;
+                    }
+                }, 1200);
 
-            // Fallback taymeri: agar store app ochilmasa web versiyaga o'tamiz
-            clearTimeout(storeFallbackTimer);
-            storeFallbackTimer = setTimeout(() => {
-                if (storeOpened) {
-                    // Store app ochildi -> sahifani yopishga harakat qilamiz
-                    tryCloseTab();
-                    return;
-                }
+            } else if (platform === 'android') {
+                updateStatus('Redirecting to Play Store...');
+                // Play Market app ni ochishga urinish
+                window.location.href = CONFIG.PLAY_STORE;
 
-                // Store app yo'q -> shu sahifada web store ni ochamiz
-                window.location.href = storeUrls.web;
-            }, CONFIG.STORE_REDIRECT_DELAY);
-        }
+                clearTimeout(storeFallbackTimer);
+                storeFallbackTimer = setTimeout(() => {
+                    if (!appOpened) {
+                        window.location.href = CONFIG.PLAY_STORE_WEB;
+                    }
+                }, 1200);
 
-        // Sahifani yopishga urinish (store app ochilganda)
-        function tryCloseTab() {
-            updateStatus('Store opened. You can close this tab.');
-
-            // about:blank ga almashtirib, keyin yopishga urinish
-            setTimeout(() => {
-                window.location.replace('about:blank');
-                window.close();
-            }, 200);
+            } else {
+                // Desktop yoki boshqa
+                updateStatus('Redirecting to Play Store...');
+                window.location.href = CONFIG.PLAY_STORE_WEB;
+            }
         }
 
         // Asosiy funksiya
@@ -307,15 +307,10 @@
         });
 
         window.addEventListener('visibilitychange', function () {
-            if (storeAttempted && document.visibilityState === 'hidden') {
-                storeOpened = true;
-                console.log('🛍️ Store app ochildi (visibility hidden)');
-            }
-
             // App ochilganini faqat mobile-da hidden bo'lganda belgilaymiz
             if (!storeAttempted && document.visibilityState === 'hidden' && currentPlatform !== 'desktop') {
                 appOpened = true;
-                console.log('✅ App ochildi (visibility hidden)');
+                console.log('✅ App ochildi yoki Store app ochildi (visibility hidden)');
             }
 
             if (document.visibilityState === 'visible' && !appOpened) {
@@ -331,7 +326,7 @@
         // Sahifa tarixdan chiqayotganda (store/app ga ketganda)
         window.addEventListener('pagehide', function () {
             if (storeAttempted) {
-                storeOpened = true;
+                appOpened = true;
             }
         });
 
