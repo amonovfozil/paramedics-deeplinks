@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening Paramedics Dr App</title>
+
+    <!-- iOS Universal Links metadata -->
+    <meta property="al:ios:url" content="paramedicsdr://deeplink" />
+    <meta property="al:ios:app_store_id" content="6469779193" />
+    <meta property="al:ios:app_name" content="Paramedics Dr" />
+
+    <!-- Android App Links metadata -->
+    <meta property="al:android:url" content="paramedicsdr://deeplink" />
+    <meta property="al:android:app_name" content="Paramedics Dr" />
+    <meta property="al:android:package" content="com.paramedics.paramedicsuz_doctor" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #4f6df5 0%, #2a36b0 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+
+        .container {
+            padding: 30px;
+            max-width: 400px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #4f6df5;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        p {
+            margin: 0 0 20px 0;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .manual-buttons {
+            margin-top: 30px;
+        }
+
+        .store-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 5px;
+            background: white;
+            color: #4f6df5;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .store-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">P</div>
+        <h1>Paramedics Dr</h1>
+        <p>Opening the app...</p>
+
+        <div class="loader"></div>
+
+        <div class="manual-buttons">
+            <a href="#" onclick="openPlayStore()" class="store-btn">Get on Google Play</a>
+            <a href="#" onclick="openAppStore()" class="store-btn">Get on App Store</a>
+        </div>
+
+        <div class="status" id="status">Redirecting...</div>
+    </div>
+
+    <script>
+        // Parametrlarni URL dan olish va shifrlash
+        function getEncodedParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = {};
+
+            // Kerakli parametrlarni olish
+            if (urlParams.has('referral_code')) params.r = urlParams.get('referral_code');
+            if (urlParams.has('user_id')) params.u = urlParams.get('user_id');
+            if (urlParams.has('page_name')) params.p = urlParams.get('page_name');
+
+            // Agar hech qanday parametr bo'lmasa
+            if (Object.keys(params).length === 0) return null;
+
+            // Base64 ga shifrlash
+            const jsonStr = JSON.stringify(params);
+            return btoa(encodeURIComponent(jsonStr));
+        }
+
+        // Platformani aniqlash
+        function detectPlatform() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+            if (/android/i.test(ua)) return 'android';
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
+            return 'other';
+        }
+
+        // Parametrlarni localStorage ga saqlash (7 kun)
+        function saveParamsToStorage(encodedParams) {
+            if (!encodedParams) return null;
+
+            const storageKey = 'paramedics_deeplink_' + Date.now();
+            const data = {
+                params: encodedParams,
+                expires: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 kun
+            };
+
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(data));
+                return storageKey;
+            } catch (e) {
+                console.log('LocalStorage error:', e);
+                return null;
+            }
+        }
+
+        // URL hash orqali parametrlarni o'tkazish
+        function passParamsViaHash(encodedParams) {
+            if (encodedParams) {
+                // Hash qismiga parametrlarni qo'shish
+                window.location.hash = '#params=' + encodedParams;
+                return true;
+            }
+            return false;
+        }
+
+        // App ochishga urinish
+        function tryOpenApp(encodedParams) {
+            const platform = detectPlatform();
+            const appScheme = 'paramedicsdr://deeplink';
+            let appUrl = appScheme;
+
+            // Agar parametrlar bo'lsa, URL ga qo'shish
+            if (encodedParams) {
+                appUrl += '?params=' + encodedParams;
+            }
+
+            // Android uchun Intent
+            if (platform === 'android') {
+                appUrl = `intent://deeplink${encodedParams ? '?params=' + encodedParams : ''}#Intent;scheme=paramedicsdr;package=com.paramedics.paramedicsuz_doctor;end`;
+            }
+
+            document.getElementById('status').textContent = 'Trying to open app...';
+
+            // App ni ochishga urinish
+            window.location.href = appUrl;
+
+            // Agar app ochilmasa, store ga o'tish
+            setTimeout(() => {
+                if (platform === 'ios') {
+                    window.location.href = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
+                } else if (platform === 'android') {
+                    window.location.href = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
+                } else {
+                    // Desktop uchun
+                    window.open('https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor', '_blank');
+                }
+            }, 1500);
+
+            return true;
+        }
+
+        // Asosiy funksiya
+        function handleRedirect() {
+            const encodedParams = getEncodedParams();
+            let storageKey = null;
+
+            // Parametrlarni saqlash
+            if (encodedParams) {
+                storageKey = saveParamsToStorage(encodedParams);
+                passParamsViaHash(encodedParams);
+            }
+
+            // App ni ochishga urinish
+            tryOpenApp(encodedParams);
+
+            // Storage key ni URL ga qo'shish (app o'qishi uchun)
+            if (storageKey) {
+                setTimeout(() => {
+                    window.location.search = window.location.search + '&storage_key=' + storageKey;
+                }, 100);
+            }
+        }
+
+        // Qo'lda store ochish funksiyalari
+        function openPlayStore() {
+            window.location.href = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
+        }
+
+        function openAppStore() {
+            window.location.href = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
+        }
+
+        // Sahifa yuklanganda ishga tushirish
+        window.addEventListener('DOMContentLoaded', function () {
+            setTimeout(handleRedirect, 500);
+        });
+
+        // Agar user qaytib kelsa (app o'rnatilmagan bo'lsa)
+        window.addEventListener('pagehide', function () {
+            document.getElementById('status').textContent = 'If app is not installed, you will be redirected to store...';
+        });
+    </script>
+</body>
+
+</html>

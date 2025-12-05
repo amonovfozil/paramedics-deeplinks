@@ -1,0 +1,20 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "6469779193.com.paramedics.paramedicsuzDoctor",
+                "paths": [
+                    "*",
+                    "NOT /excluded/*"
+                ]
+            }
+        ]
+    },
+    "appclips": {},
+    "webcredentials": {
+        "apps": [
+            "6469779193.com.paramedics.paramedicsuzDoctor"
+        ]
+    }
+}

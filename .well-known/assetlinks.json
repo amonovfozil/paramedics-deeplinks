@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.paramedics.paramedicsuz_doctor",
+            "sha256_cert_fingerprints": [
+                "22:59:D9:75:C1:F5:0C:AD:EA:E0:FD:F5:7D:2C:32:48:92:4F:BE:92:DB:F2:F1:3D:00:83:43:E5:63:14:0B:78"
+            ]
+        }
+    }
+]
