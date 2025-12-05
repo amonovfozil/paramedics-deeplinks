@@ -1,78 +1,59 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paramedics Dr</title>
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: white;
+            font-family: Arial;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 24px;
-            padding: 40px 30px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            height: 100vh;
             text-align: center;
         }
 
+        .container {
+            max-width: 400px;
+            padding: 20px;
+        }
+
         .logo {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
-            border-radius: 24px;
-            margin: 0 auto 24px;
+            width: 80px;
+            height: 80px;
+            background: #1a73e8;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
-        }
-
-        .logo-text {
-            color: white;
-            font-size: 48px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
             color: #333;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
-        .subtitle {
+        p {
             color: #666;
-            font-size: 16px;
-            margin-bottom: 32px;
-            line-height: 1.5;
+            margin-bottom: 30px;
         }
 
         .loader {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border: 4px solid #f0f0f0;
             border-top: 4px solid #1a73e8;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 24px;
+            margin: 20px auto;
         }
 
         @keyframes spin {
@@ -88,259 +69,64 @@
         .status {
             color: #666;
             font-size: 14px;
-            padding: 12px;
-            background: #f5f5f5;
-            border-radius: 12px;
-            margin-top: 24px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .status-icon {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .manual-buttons {
-            display: none;
-            margin-top: 24px;
-            gap: 12px;
-            flex-direction: column;
-        }
-
-        .manual-buttons.show {
-            display: flex;
-        }
-
-        .store-button {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .store-button.ios {
-            background: #000;
-            color: white;
-        }
-
-        .store-button.android {
-            background: #01875f;
-            color: white;
-        }
-
-        .store-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
         }
     </style>
+    <script>
+        const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
+        const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
+
+        function startRedirect() {
+            document.getElementById('status').textContent = 'Opening app...';
+
+            const userAgent = navigator.userAgent;
+            const isIOS = /iPhone|iPad|iPod/.test(userAgent);
+            const isAndroid = /Android/.test(userAgent);
+            const isMacOS = /Macintosh/.test(userAgent) && !isIOS;
+            const isAppleDevice = isIOS || isMacOS;
+
+            if (isIOS || isAndroid) {
+                // Mobile: Try deeplink first, then store
+                setTimeout(() => {
+                    window.location.href = 'paramedicsdr://deeplink';
+                    document.getElementById('status').textContent = 'Trying to open app...';
+                }, 800);
+
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Redirecting to store...';
+                    if (isIOS) {
+                        window.location.href = APP_STORE;
+                    } else {
+                        window.location.href = PLAY_STORE;
+                    }
+                }, 2000);
+            } else {
+                // Desktop/Other: Directly to store
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Redirecting to store...';
+                    if (isAppleDevice) {
+                        window.location.href = APP_STORE;
+                    } else {
+                        window.location.href = PLAY_STORE;
+                    }
+                }, 1000);
+            }
+        }
+
+        window.onload = function () {
+            setTimeout(startRedirect, 500);
+        };
+    </script>
 </head>
 
 <body>
     <div class="container">
-        <div class="logo">
-            <div class="logo-text">P</div>
-        </div>
+        <div class="logo">P</div>
         <h1>Paramedics Dr</h1>
-        <p class="subtitle">Ilovangiz ochilmoqda...</p>
+        <p>Opening application...</p>
         <div class="loader"></div>
-        <div class="status" id="status">
-            <span class="status-icon">⏳</span>
-            <span id="statusText">Platformani aniqlash...</span>
-        </div>
-        <div class="manual-buttons" id="manualButtons">
-            <a href="#" id="storeButton" class="store-button">Do'konga o'tish</a>
-        </div>
+        <div class="status" id="status">Initializing...</div>
     </div>
-
-    <script>
-        const CONFIG = {
-            DEEP_LINK: 'paramedicsdr://open',
-            IOS_APP_STORE: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
-            ANDROID_PLAY_STORE: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
-            APP_OPEN_TIMEOUT: 2500,
-            STORE_REDIRECT_DELAY: 3000
-        };
-
-        const statusElement = document.getElementById('statusText');
-        const manualButtons = document.getElementById('manualButtons');
-        const storeButton = document.getElementById('storeButton');
-
-        function updateStatus(message, icon = '⏳') {
-            statusElement.innerHTML = `<span class="status-icon">${icon}</span>${message}`;
-        }
-
-        function detectPlatform() {
-            const ua = navigator.userAgent;
-            const platform = navigator.platform;
-
-            if (/iPhone|iPad|iPod/.test(ua)) {
-                return 'ios';
-            }
-            if (/Macintosh|MacIntel|MacPPC|Mac68K/.test(platform)) {
-                return 'macos';
-            }
-            if (/Android/.test(ua)) {
-                return 'android';
-            }
-            return 'other';
-        }
-
-        function getStoreUrl(platform) {
-            if (platform === 'ios' || platform === 'macos') {
-                return CONFIG.IOS_APP_STORE;
-            }
-            return CONFIG.ANDROID_PLAY_STORE;
-        }
-
-        function getStoreName(platform) {
-            if (platform === 'ios' || platform === 'macos') {
-                return 'App Store';
-            }
-            return 'Play Market';
-        }
-
-        function setupManualButton(platform) {
-            const storeName = getStoreName(platform);
-            const storeUrl = getStoreUrl(platform);
-
-            storeButton.href = storeUrl;
-            storeButton.textContent = `${storeName}ga o'tish`;
-            storeButton.className = `store-button ${platform === 'ios' || platform === 'macos' ? 'ios' : 'android'}`;
-        }
-
-        function tryOpenApp(platform) {
-            return new Promise((resolve) => {
-                const startTime = Date.now();
-                let appOpened = false;
-
-                // Visibility change listener
-                const visibilityHandler = () => {
-                    if (document.hidden) {
-                        appOpened = true;
-                        resolve(true);
-                    }
-                };
-
-                // Blur listener (ilova ochilganda browser blur bo'ladi)
-                const blurHandler = () => {
-                    appOpened = true;
-                    resolve(true);
-                };
-
-                document.addEventListener('visibilitychange', visibilityHandler);
-                window.addEventListener('blur', blurHandler);
-                window.addEventListener('pagehide', blurHandler);
-
-                // Deep link ochish
-                updateStatus('Ilovani ochish...', '📱');
-
-                // Universal link yoki custom scheme
-                if (platform === 'ios' || platform === 'macos') {
-                    // iOS uchun avval universal link, keyin custom scheme
-                    window.location.href = CONFIG.DEEP_LINK;
-                } else {
-                    // Android uchun intent va custom scheme
-                    const intentUrl = `intent://open#Intent;scheme=paramedicsdr;package=com.paramedics.paramedicsuz_doctor;end`;
-                    window.location.href = intentUrl;
-
-                    // Fallback - agar intent ishlamasa
-                    setTimeout(() => {
-                        if (!appOpened) {
-                            window.location.href = CONFIG.DEEP_LINK;
-                        }
-                    }, 500);
-                }
-
-                // Timeout - agar ilova ochilmasa
-                setTimeout(() => {
-                    document.removeEventListener('visibilitychange', visibilityHandler);
-                    window.removeEventListener('blur', blurHandler);
-                    window.removeEventListener('pagehide', blurHandler);
-
-                    if (!appOpened) {
-                        const elapsed = Date.now() - startTime;
-                        // Agar browser hali ham focus bo'lsa va vaqt o'tgan bo'lsa - ilova yo'q
-                        if (!document.hidden && elapsed >= CONFIG.APP_OPEN_TIMEOUT) {
-                            resolve(false);
-                        } else {
-                            resolve(true);
-                        }
-                    }
-                }, CONFIG.APP_OPEN_TIMEOUT);
-            });
-        }
-
-        async function handleRedirect() {
-            const platform = detectPlatform();
-            const storeName = getStoreName(platform);
-            const storeUrl = getStoreUrl(platform);
-
-            updateStatus(`Platform: ${platform.toUpperCase()}`, '🔍');
-            setupManualButton(platform);
-
-            // 1. Birinchi ilovani ochishga harakat qilamiz
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const appOpened = await tryOpenApp(platform);
-
-            if (appOpened) {
-                updateStatus('Ilova ochilmoqda...', '✅');
-            } else {
-                // 2. Ilova ochilmasa - do'konga yo'naltirish
-                updateStatus(`${storeName}ga yo'naltirilmoqda...`, '🏪');
-
-                setTimeout(() => {
-                    window.location.href = storeUrl;
-                }, 1000);
-
-                // 3. Manual tugma ko'rsatish (fallback)
-                setTimeout(() => {
-                    updateStatus('Avtomatik yo\'naltirilmadimi?', '🤔');
-                    manualButtons.classList.add('show');
-                }, 2000);
-            }
-        }
-
-        // Sahifa yuklanganda ishga tushirish
-        window.addEventListener('load', () => {
-            setTimeout(handleRedirect, 300);
-        });
-
-        // Sahifaga qaytganda tekshirish
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                // Agar foydalanuvchi qaytib kelgan bo'lsa, ehtimol ilova ochilmagan
-                setTimeout(() => {
-                    if (manualButtons.classList.contains('show')) {
-                        updateStatus('Qo\'lda do\'konga o\'tishingiz mumkin', '👇');
-                    }
-                }, 500);
-            }
-        });
-    </script>
 </body>
 
 </html>
