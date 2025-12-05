@@ -76,65 +76,82 @@
         const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
         const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
 
+        function getPlatform() {
+            const ua = navigator.userAgent.toLowerCase();
+            const isIOS = /iphone|ipad|ipod/.test(ua);
+            const isAndroid = /android/.test(ua);
+            const isMacOS = /macintosh/.test(ua) && !isIOS;
+            return {
+                isIOS,
+                isAndroid,
+                isMobile: isIOS || isAndroid,
+                isApple: isIOS || isMacOS
+            };
+        }
+
+        function buildUrls(referralCode, isApple) {
+            const storeUrl = (isApple ? APP_STORE : PLAY_STORE) + (referralCode ? (referralCode.includes('?') ? '&' : '?') + 'referral_code=' + encodeURIComponent(referralCode) : '');
+            const deeplink = 'paramedicsdr://deeplink' + (referralCode ? '?referral_code=' + encodeURIComponent(referralCode) : '');
+            return { storeUrl, deeplink };
+        }
+
+        function setupAppOpenDetection(callback) {
+            let appOpened = false;
+            const clearAndMark = () => {
+                if (!appOpened) {
+                    appOpened = true;
+                    callback();
+                }
+            };
+            const handleVisibility = () => document.hidden && clearAndMark();
+            const handleBlur = () => clearAndMark();
+            document.addEventListener('visibilitychange', handleVisibility);
+            window.addEventListener('blur', handleBlur);
+            return { handleVisibility, handleBlur };
+        }
+
         function startRedirect() {
             const statusEl = document.getElementById('status');
             statusEl.textContent = 'Opening app...';
 
-            // Parse URL parameters and store in localStorage for potential deferred retrieval
+            // Parse and store referral code
             const urlParams = new URLSearchParams(window.location.search);
             const referralCode = urlParams.get('referral_code');
-            if (referralCode) {
+            if (referralCode && localStorage) {
                 localStorage.setItem('paramedics_referral_code', referralCode);
-                // Optionally store other params if needed
-                // localStorage.setItem('other_param', urlParams.get('other_param'));
             }
 
-            const userAgent = navigator.userAgent.toLowerCase();
-            const isIOS = /iphone|ipad|ipod/.test(userAgent);
-            const isAndroid = /android/.test(userAgent);
-            const isMacOS = /macintosh/.test(userAgent) && !isIOS;
-            const isMobile = isIOS || isAndroid;
-            const isApple = isIOS || isMacOS;
-
-            let storeUrl = isApple ? APP_STORE : PLAY_STORE;
-            // Optionally append referral_code to store URL (though stores may ignore it; useful for tracking)
-            if (referralCode) {
-                storeUrl += (storeUrl.includes('?') ? '&' : '?') + 'referral_code=' + encodeURIComponent(referralCode);
-            }
-
-            // Build deeplink with params if available
-            let deeplink = 'paramedicsdr://deeplink';
-            if (referralCode) {
-                deeplink += '?referral_code=' + encodeURIComponent(referralCode);
-            }
+            const { isMobile, isApple, isAndroid } = getPlatform();
+            let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
             let redirectTimeout;
-            let appOpened = false;
-
-            const clearAndMarkOpened = () => {
-                if (!appOpened) {
-                    appOpened = true;
-                    clearTimeout(redirectTimeout);
-                    statusEl.textContent = 'App opened successfully!';
-                }
-            };
-
-            // Event listeners for detecting app open
-            const handleVisibilityChange = () => {
-                if (document.hidden) {
-                    clearAndMarkOpened();
-                }
-            };
-
-            const handleBlur = () => {
-                clearAndMarkOpened();
-            };
-
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            window.addEventListener('blur', handleBlur);
+            const { handleVisibility, handleBlur } = setupAppOpenDetection(() => {
+                clearTimeout(redirectTimeout);
+                statusEl.textContent = 'App opened successfully!';
+            });
 
             if (isMobile) {
-                // Mobile (iOS/Android): Attempt deeplink via iframe
+                // Referral kodni clipboard'ga nusxala (iOS deferred uchun)
+                if (referralCode) {
+                    const clipboardText = `paramedics_referral_code:${referralCode}`; // Format: key:value
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(clipboardText).catch(err => console.error('Clipboard xatosi:', err));
+                    } else {
+                        // Fallback
+                        const textArea = document.createElement('textarea');
+                        textArea.value = clipboardText;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                    }
+                }
+                // Android uchun referrer qo'shish (storeUrl'ga)
+                if (isAndroid && referralCode) {
+                    storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=${encodeURIComponent('utm_source%3Ddeep_link%26utm_campaign%3Dreferral%26referral_code%3D' + referralCode)}`;
+                }
+
+                // Mobile: Iframe deeplink attempt
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 iframe.src = deeplink;
@@ -145,38 +162,31 @@
                     statusEl.textContent = 'Trying to open app...';
                 }, 500);
 
-                // Timeout to redirect if app not opened: close window first, then store
+                // Timeout: close then redirect
                 redirectTimeout = setTimeout(() => {
-                    if (!appOpened) {
+                    if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
-                        // Close window first (on mobile, this may help switch to store)
                         window.close();
-                        // Fallback redirect after brief delay
-                        setTimeout(() => {
-                            window.location.href = storeUrl;
-                        }, 100);
+                        setTimeout(() => window.location.href = storeUrl, 100);
                     }
                 }, 2500);
 
             } else {
-                // Desktop/Other: Direct redirect without closing window
+                // Desktop: Direct redirect
                 setTimeout(() => {
                     statusEl.textContent = 'Redirecting to store...';
-                    // No window.close() here - redirect in place
                     window.location.href = storeUrl;
                 }, 1000);
             }
 
-            // Cleanup listeners after timeout or on unload
+            // Cleanup after 3s
             setTimeout(() => {
-                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                document.removeEventListener('visibilitychange', handleVisibility);
                 window.removeEventListener('blur', handleBlur);
             }, 3000);
         }
 
-        window.onload = function () {
-            setTimeout(startRedirect, 500);
-        };
+        window.onload = () => setTimeout(startRedirect, 500);
     </script>
 </head>
 
