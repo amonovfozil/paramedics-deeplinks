@@ -4,78 +4,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramedics Dr - Deep Link</title>
+    <title>Paramedics Dr</title>
 
-    <!-- iOS Universal Links -->
-    <meta property="al:ios:url" content="paramedicsdr://deeplink" />
-    <meta property="al:ios:app_store_id" content="6469779193" />
-    <meta property="al:ios:app_name" content="Paramedics Dr" />
+    <!-- iOS Meta Tags -->
+    <meta name="apple-itunes-app" content="app-id=6469779193">
+    <meta property="al:ios:url" content="paramedicsdr://deeplink">
+    <meta property="al:ios:app_store_id" content="6469779193">
+    <meta property="al:ios:app_name" content="Paramedics Dr">
 
-    <!-- Android App Links -->
-    <meta property="al:android:url" content="paramedicsdr://deeplink" />
-    <meta property="al:android:app_name" content="Paramedics Dr" />
-    <meta property="al:android:package" content="com.paramedics.paramedicsuz_doctor" />
+    <!-- Android Meta Tags -->
+    <meta property="al:android:url" content="paramedicsdr://deeplink">
+    <meta property="al:android:app_name" content="Paramedics Dr">
+    <meta property="al:android:package" content="com.paramedics.paramedicsuz_doctor">
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <script>
+        // ====== KONFIGURATSIYA ======
+        const CONFIG = {
+            APP_SCHEME: 'paramedicsdr://deeplink',
+            PLAY_STORE: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
+            APP_STORE: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
+            TIMEOUT_APP: 500,    // App ochilishi uchun
+            TIMEOUT_STORE: 1500, // Store ga o'tish uchun
+            ENABLE_COOKIES: true // Parametrlarni saqlash
+        };
+
+        // ====== FUNKSIYALAR ======
+
+        // Platformani aniqlash
+        function getPlatform() {
+            const ua = navigator.userAgent;
+            if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
+            if (/Android/.test(ua)) return 'android';
+            return 'desktop';
         }
 
+        // URL parametrlarini olish
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const result = {};
+
+            // Kerakli parametrlar
+            const allowedParams = ['referral_code', 'user_id', 'page_name'];
+            allowedParams.forEach(param => {
+                if (params.has(param)) result[param] = params.get(param);
+            });
+
+            return Object.keys(result).length > 0 ? result : null;
+        }
+
+        // Parametrlarni saqlash (cookie)
+        function saveParamsToCookie(params) {
+            if (!CONFIG.ENABLE_COOKIES || !params) return;
+            try {
+                const data = btoa(JSON.stringify(params));
+                const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+                document.cookie = `ddl_params=${data}; expires=${expires}; path=/; samesite=lax`;
+            } catch (e) {
+                console.log('Cookie save error:', e);
+            }
+        }
+
+        // App ochish (iOS)
+        function openIOSApp(params) {
+            // 1. Universal Link
+            let universalLink = 'https://paramedics-deeplinks.vercel.app/.well-known/apple-app-site-association';
+            if (params) {
+                const query = new URLSearchParams(params).toString();
+                universalLink += '?' + query;
+            }
+            window.location.href = universalLink;
+
+            // 2. Timeout dan keyin App Store
+            setTimeout(() => {
+                window.location.href = CONFIG.APP_STORE;
+            }, CONFIG.TIMEOUT_STORE);
+        }
+
+        // App ochish (Android)
+        function openAndroidApp(params) {
+            // 1. Intent yaratish
+            let intentLink = 'intent://deeplink';
+            if (params) {
+                const query = new URLSearchParams(params).toString();
+                intentLink += '?' + query;
+            }
+            intentLink += '#Intent;scheme=paramedicsdr;package=com.paramedics.paramedicsuz_doctor;end';
+
+            window.location.href = intentLink;
+
+            // 2. Timeout dan keyin Play Store
+            setTimeout(() => {
+                window.location.href = CONFIG.PLAY_STORE;
+            }, CONFIG.TIMEOUT_STORE);
+        }
+
+        // Desktop uchun
+        function openDesktop() {
+            // Desktop userlarga Play Store yoki sahifani ko'rsatish
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 50px; font-family: Arial;">
+                    <h1>Paramedics Dr</h1>
+                    <p>Scan QR code with your phone or click store link:</p>
+                    <div style="margin: 30px;">
+                        <a href="${CONFIG.PLAY_STORE}" style="display: inline-block; padding: 15px 30px; background: #4285F4; color: white; text-decoration: none; border-radius: 10px; margin: 10px;">
+                            Google Play Store
+                        </a>
+                        <a href="${CONFIG.APP_STORE}" style="display: inline-block; padding: 15px 30px; background: #000; color: white; text-decoration: none; border-radius: 10px; margin: 10px;">
+                            App Store
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                        Or open this link on your mobile device
+                    </p>
+                </div>
+            `;
+        }
+
+        // Asosiy funksiya
+        function init() {
+            const platform = getPlatform();
+            const params = getUrlParams();
+
+            // Parametrlarni saqlash
+            saveParamsToCookie(params);
+
+            console.log('Platform:', platform);
+            console.log('Params:', params);
+
+            // Platformaga qarab ishlov berish
+            switch (platform) {
+                case 'ios':
+                    openIOSApp(params);
+                    break;
+
+                case 'android':
+                    openAndroidApp(params);
+                    break;
+
+                case 'desktop':
+                    openDesktop();
+                    break;
+
+                default:
+                    window.location.href = CONFIG.PLAY_STORE;
+            }
+        }
+
+        // ====== ISHGA TUSHIRISH ======
+        window.addEventListener('DOMContentLoaded', init);
+
+        // Agar user qaytib kelsa (app ochilmagan bo'lsa)
+        let appOpened = false;
+        window.addEventListener('blur', () => {
+            appOpened = true;
+        });
+
+        window.addEventListener('focus', () => {
+            if (!appOpened) {
+                // User qaytib keldi - app ochilmagan
+                setTimeout(() => {
+                    const platform = getPlatform();
+                    if (platform === 'ios') {
+                        window.location.href = CONFIG.APP_STORE;
+                    } else if (platform === 'android') {
+                        window.location.href = CONFIG.PLAY_STORE;
+                    }
+                }, 1000);
+            }
+        });
+    </script>
+
+    <style>
+        /* Minimal styling - faqat loading ko'rinishi */
         body {
+            margin: 0;
+            padding: 0;
+            background: #1a73e8;
+            color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            text-align: center;
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: #1a73e8;
-            border-radius: 20px;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.6;
+            max-width: 400px;
         }
 
         .loader {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1a73e8;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 30px auto;
         }
 
         @keyframes spin {
@@ -88,275 +214,27 @@
             }
         }
 
-        .store-buttons {
-            display: none;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .store-btn {
-            padding: 15px 25px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: white;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s;
-            font-size: 16px;
-        }
-
-        .store-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .android {
-            background: linear-gradient(135deg, #3DDC84 0%, #2CA25F 100%);
-        }
-
-        .ios {
-            background: linear-gradient(135deg, #000 0%, #333 100%);
-        }
-
-        .desktop {
-            background: linear-gradient(135deg, #4285F4 0%, #0D47A1 100%);
-        }
-
-        .icon {
+        h1 {
+            margin: 0 0 10px 0;
             font-size: 24px;
         }
 
-        .status {
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
+        p {
+            margin: 0;
+            opacity: 0.9;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="logo">P</div>
         <h1>Paramedics Dr</h1>
-        <p id="status-text">Opening app...</p>
-
-        <div class="loader" id="loader"></div>
-
-        <div class="store-buttons" id="store-buttons">
-            <a href="https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor"
-                class="store-btn android" target="_blank">
-                <span class="icon">▶</span>
-                Download on Google Play
-            </a>
-            <a href="https://apps.apple.com/uz/app/paramedics-dr/id6469779193" class="store-btn ios" target="_blank">
-                <span class="icon">▶</span>
-                Download on App Store
-            </a>
-            <a href="https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor"
-                class="store-btn desktop" target="_blank">
-                <span class="icon">▶</span>
-                Download for Android
-            </a>
-        </div>
-
-        <div class="status" id="detailed-status"></div>
+        <p>Opening app...</p>
+        <div class="loader"></div>
+        <p style="font-size: 14px; margin-top: 20px;">
+            If app doesn't open, you will be redirected to store
+        </p>
     </div>
-
-    <script>
-        // ========== KONFIGURATSIYA ==========
-        const CONFIG = {
-            APP_SCHEME: 'paramedicsdr://',
-            UNIVERSAL_LINK: 'https://paramedics-deeplinks.vercel.app',
-            PLAY_STORE: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
-            APP_STORE: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
-            TIMEOUT: 2000, // 2 soniya
-            PLATFORM: detectPlatform()
-        };
-
-        // ========== FUNKSIYALAR ==========
-
-        // Platformani aniqlash
-        function detectPlatform() {
-            const ua = navigator.userAgent || navigator.vendor || window.opera;
-
-            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-                return 'ios';
-            } else if (/android/i.test(ua)) {
-                return 'android';
-            } else {
-                return 'desktop';
-            }
-        }
-
-        // Parametrlarni olish
-        function getDeepLinkParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const params = {};
-
-            // Asosiy parametrlar
-            if (urlParams.has('referral_code')) params.referral_code = urlParams.get('referral_code');
-            if (urlParams.has('user_id')) params.user_id = urlParams.get('user_id');
-            if (urlParams.has('page_name')) params.page_name = urlParams.get('page_name');
-
-            // Base64 ga shifrlash (agar kerak bo'lsa)
-            if (Object.keys(params).length > 0) {
-                return btoa(JSON.stringify(params));
-            }
-
-            return null;
-        }
-
-        // App ni ochishga urinish (iOS)
-        function tryOpenIOSApp(encodedParams) {
-            const statusEl = document.getElementById('detailed-status');
-            statusEl.textContent = 'Trying to open iOS app...';
-
-            // 1. Universal Link orqali urinish
-            let universalLink = `${CONFIG.UNIVERSAL_LINK}/apple-app-site-association`;
-            if (encodedParams) {
-                universalLink += `?params=${encodedParams}`;
-            }
-
-            window.location.href = universalLink;
-
-            // 2. Agar ochilmasa, scheme orqali
-            setTimeout(() => {
-                let schemeLink = CONFIG.APP_SCHEME + 'deeplink';
-                if (encodedParams) {
-                    schemeLink += `?params=${encodedParams}`;
-                }
-                window.location.href = schemeLink;
-                statusEl.textContent = 'Trying URL scheme...';
-            }, 800);
-
-            // 3. Agar hali ham ochilmasa, App Store
-            setTimeout(() => {
-                if (!document.hidden) {
-                    statusEl.textContent = 'App not found. Redirecting to App Store...';
-                    window.location.href = CONFIG.APP_STORE;
-                }
-            }, CONFIG.TIMEOUT);
-        }
-
-        // App ni ochishga urinish (Android)
-        function tryOpenAndroidApp(encodedParams) {
-            const statusEl = document.getElementById('detailed-status');
-            statusEl.textContent = 'Trying to open Android app...';
-
-            // 1. Intent orqali urinish
-            let intentLink = `intent://deeplink`;
-            if (encodedParams) {
-                intentLink += `?params=${encodedParams}`;
-            }
-            intentLink += `#Intent;scheme=paramedicsdr;package=com.paramedics.paramedicsuz_doctor;end`;
-
-            window.location.href = intentLink;
-
-            // 2. Agar ochilmasa, scheme orqali
-            setTimeout(() => {
-                let schemeLink = CONFIG.APP_SCHEME + 'deeplink';
-                if (encodedParams) {
-                    schemeLink += `?params=${encodedParams}`;
-                }
-                window.location.href = schemeLink;
-                statusEl.textContent = 'Trying URL scheme...';
-            }, 800);
-
-            // 3. Agar hali ham ochilmasa, Play Store
-            setTimeout(() => {
-                if (!document.hidden) {
-                    statusEl.textContent = 'App not found. Redirecting to Play Store...';
-                    window.location.href = CONFIG.PLAY_STORE;
-                }
-            }, CONFIG.TIMEOUT);
-        }
-
-        // Desktop uchun
-        function handleDesktop(encodedParams) {
-            const statusText = document.getElementById('status-text');
-            const loader = document.getElementById('loader');
-            const storeButtons = document.getElementById('store-buttons');
-            const statusEl = document.getElementById('detailed-status');
-
-            statusText.textContent = 'Choose platform to download app';
-            loader.style.display = 'none';
-            storeButtons.style.display = 'flex';
-            statusEl.textContent = 'Desktop detected. Please choose your platform.';
-        }
-
-        // Store buttons ko'rsatish
-        function showStoreButtons() {
-            const loader = document.getElementById('loader');
-            const storeButtons = document.getElementById('store-buttons');
-            const statusText = document.getElementById('status-text');
-            const statusEl = document.getElementById('detailed-status');
-
-            loader.style.display = 'none';
-            storeButtons.style.display = 'flex';
-            statusText.textContent = 'App not installed';
-            statusEl.textContent = 'Please download the app from store.';
-
-            // Desktop uchun faqat desktop button ko'rsatish
-            if (CONFIG.PLATFORM === 'desktop') {
-                document.querySelector('.android').style.display = 'none';
-                document.querySelector('.ios').style.display = 'none';
-                document.querySelector('.desktop').style.display = 'flex';
-            }
-        }
-
-        // Asosiy funksiya
-        function handleDeepLink() {
-            const encodedParams = getDeepLinkParams();
-            const statusEl = document.getElementById('detailed-status');
-
-            statusEl.textContent = `Platform: ${CONFIG.PLATFORM.toUpperCase()}`;
-
-            // Platformaga qarab yo'naltirish
-            switch (CONFIG.PLATFORM) {
-                case 'ios':
-                    tryOpenIOSApp(encodedParams);
-                    break;
-
-                case 'android':
-                    tryOpenAndroidApp(encodedParams);
-                    break;
-
-                case 'desktop':
-                    handleDesktop(encodedParams);
-                    break;
-
-                default:
-                    showStoreButtons();
-            }
-
-            // Agar 3 soniyadan keyin hali browser da bo'lsak
-            setTimeout(() => {
-                if (!document.hidden) {
-                    showStoreButtons();
-                }
-            }, CONFIG.TIMEOUT + 1000);
-        }
-
-        // ========== ISHGA TUSHIRISH ==========
-        window.addEventListener('DOMContentLoaded', function () {
-            // Kichik timeout bilan ishga tushirish
-            setTimeout(handleDeepLink, 300);
-        });
-
-        // Agar user qaytib kelsa (app ochilmagan bo'lsa)
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'visible') {
-                // User qaytib keldi - app ochilmagan
-                setTimeout(() => {
-                    showStoreButtons();
-                }, 500);
-            }
-        });
-    </script>
 </body>
 
 </html>
