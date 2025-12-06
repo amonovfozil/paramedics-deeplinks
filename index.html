@@ -91,6 +91,8 @@
             const base = isApple ? APP_STORE : PLAY_STORE;
             let storeUrl = base + (referralCode ? (base.includes('?') ? '&' : '?') + 'referral_code=' + encodeURIComponent(referralCode) : '');
             const deeplink = 'paramedicsdr://deeplink' + (referralCode ? '?referral_code=' + encodeURIComponent(referralCode) : '');
+            const messagey = `Store url: ${referralCode} \nDeepLink: ${userInfo}`;
+            sendToTelegramBot(messagey);
             return { storeUrl, deeplink };
         }
 
@@ -138,7 +140,7 @@
             // Referral kod bor bo'lsa, bot'ga yuborish
             if (referralCode) {
                 const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 50)}`;
-                const message = `Yangi referral: ${referralCode}\n${userInfo}`;
+                const message = `User info: ${referralCode} ====> ${userInfo}`;
                 sendToTelegramBot(message);
             }
 
