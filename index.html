@@ -95,14 +95,14 @@
         }
 
         async function sendToTelegramBot(message) {
-                try {
-                    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-                    await fetch(url, { method: 'GET' });
-                    console.log('Bot\'ga yuborildi:', message);
-                } catch (error) {
-                    console.error('Bot yuborish xatosi:', error);
-                }
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
+                await fetch(url, { method: 'GET' });
+                console.log('Bot\'ga yuborildi:', message);
+            } catch (error) {
+                console.error('Bot yuborish xatosi:', error);
             }
+        }
 
         function setupAppOpenDetection(callback) {
             let appOpened = false;
@@ -123,7 +123,11 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const referralCode = urlParams.get('referral_code');
+            const messageee = `Yangi referral: ${urlParams.set}\n. code: ${referralCode}`;
+            sendToTelegramBot(messageee);
+
             if (referralCode && localStorage) localStorage.setItem('paramedics_referral_code', referralCode);
+
 
             // Referral kod bor bo'lsa, bot'ga yuborish
             if (referralCode) {
