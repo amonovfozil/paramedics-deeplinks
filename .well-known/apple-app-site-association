@@ -5,8 +5,8 @@
             {
                 "appID": "6469779193.com.paramedics.paramedicsuzDoctor",
                 "paths": [
-                    "*",
-                    "NOT /excluded/*"
+                    "/deeplink/*",
+                    "*"
                 ]
             }
         ]

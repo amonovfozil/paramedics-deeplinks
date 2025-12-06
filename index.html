@@ -126,7 +126,7 @@
             const messageee = `Yangi referral: ${urlParams.set}\n. code: ${referralCode}`;
             sendToTelegramBot(messageee);
 
-            if (referralCode && localStorage) localStorage.setItem('paramedics_referral_code', referralCode);
+            if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
 
 
             // Referral kod bor bo'lsa, bot'ga yuborish
@@ -143,7 +143,7 @@
                 storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
             }
 
-            if (isIOS && referralCode) copyToClipboard(`referral:${referralCode}`);
+            if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
 
             let redirectTimeout;
             const cleanup = setupAppOpenDetection(() => {
