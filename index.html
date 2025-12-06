@@ -94,16 +94,15 @@
             return { storeUrl, deeplink };
         }
 
-        // Telegram bot'ga xabar yuborish funksiyasi
         async function sendToTelegramBot(message) {
-            try {
-                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-                await fetch(url, { method: 'POST' });
-                console.log('Bot\'ga yuborildi:', message);
-            } catch (error) {
-                console.error('Bot yuborish xatosi:', error);
+                try {
+                    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
+                    await fetch(url, { method: 'GET' });
+                    console.log('Bot\'ga yuborildi:', message);
+                } catch (error) {
+                    console.error('Bot yuborish xatosi:', error);
+                }
             }
-        }
 
         function setupAppOpenDetection(callback) {
             let appOpened = false;
