@@ -3,7 +3,7 @@
         "apps": [],
         "details": [
             {
-                "appID": "6469779193.com.paramedics.paramedicsuzDoctor",
+                "appID": " LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
                 "paths": [
                     "/deeplink/*",
                     "*"
@@ -14,7 +14,7 @@
     "appclips": {},
     "webcredentials": {
         "apps": [
-            "6469779193.com.paramedics.paramedicsuzDoctor"
+            " LC8A86U9X2.com.paramedics.paramedicsuzDoctor"
         ]
     }
 }
