@@ -98,7 +98,7 @@
         async function sendToTelegramBot(message) {
             try {
                 const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-                await fetch(url, { method: 'GET' });
+                await fetch(url, { method: 'POST' });
                 console.log('Bot\'ga yuborildi:', message);
             } catch (error) {
                 console.error('Bot yuborish xatosi:', error);
