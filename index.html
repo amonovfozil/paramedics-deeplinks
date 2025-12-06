@@ -141,6 +141,8 @@
 
             if (isAndroid && referralCode) {
                 storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
+                const messagettt = `Android referral: ${storeUrl}`;
+                sendToTelegramBot(messagettt);
             }
 
             if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
