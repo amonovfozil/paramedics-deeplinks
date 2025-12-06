@@ -73,6 +73,10 @@
         }
     </style>
     <script>
+        // Telegram bot konfiguratsiyasi (sizning Dart'dan olingan)
+        const BOT_TOKEN = '7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA';
+        const CHAT_ID = '5851002245';
+
         const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
         const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
 
@@ -90,12 +94,23 @@
             return { storeUrl, deeplink };
         }
 
+        // Telegram bot'ga xabar yuborish funksiyasi
+        async function sendToTelegramBot(message) {
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
+                await fetch(url, { method: 'GET' });
+                console.log('Bot\'ga yuborildi:', message);
+            } catch (error) {
+                console.error('Bot yuborish xatosi:', error);
+            }
+        }
+
         function setupAppOpenDetection(callback) {
             let appOpened = false;
             const clearAndMark = () => { if (!appOpened) { appOpened = true; callback(); } };
             document.addEventListener('visibilitychange', () => document.hidden && clearAndMark());
             window.addEventListener('blur', clearAndMark);
-            return () => { document.removeEventListener('visibilitychange', arguments.callee); window.removeEventListener('blur', arguments.callee); };  // Cleanup
+            return () => { document.removeEventListener('visibilitychange', arguments.callee); window.removeEventListener('blur', arguments.callee); };
         }
 
         function copyToClipboard(text) {
@@ -111,15 +126,20 @@
             const referralCode = urlParams.get('referral_code');
             if (referralCode && localStorage) localStorage.setItem('paramedics_referral_code', referralCode);
 
+            // Referral kod bor bo'lsa, bot'ga yuborish
+            if (referralCode) {
+                const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 50)}`;
+                const message = `Yangi referral: ${referralCode}\n${userInfo}`;
+                sendToTelegramBot(message);
+            }
+
             const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
-            // Android referrer (UTM format)
             if (isAndroid && referralCode) {
                 storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
             }
 
-            // iOS clipboard
             if (isIOS && referralCode) copyToClipboard(`referral:${referralCode}`);
 
             let redirectTimeout;
