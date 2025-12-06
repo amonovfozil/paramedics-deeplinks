@@ -95,11 +95,14 @@
         }
 
         async function sendToTelegramBot(message) {
+            if (!message) return;
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
             try {
-                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-                await fetch(url, { method: 'GET' });
-                console.log('Bot\'ga yuborildi:', message);
+                // Telegram API CORS qaytarmaydi, shuning uchun no-cors bilan yuboramiz
+                await fetch(url, { method: 'GET', mode: 'no-cors' });
             } catch (error) {
+                // Fallback: tasvir orqali yuborishga urinish
+                try { const img = new Image(); img.src = url; } catch (_) { }
                 console.error('Bot yuborish xatosi:', error);
             }
         }
@@ -123,7 +126,10 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const referralCode = urlParams.get('referral_code');
-            const messageee = `Yangi referral: ${urlParams.set}\n. code: ${referralCode}`;
+            const rawQuery = window.location.search || '';
+            const messageee = referralCode
+                ? `Yangi referral: ${referralCode}\nquery: ${rawQuery}`
+                : `Referral topilmadi\nquery: ${rawQuery}`;
             sendToTelegramBot(messageee);
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
@@ -139,11 +145,11 @@
             const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
-            if (isAndroid && referralCode) {
-                storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
-                const messagettt = `Android referral: ${storeUrl}`;
-                sendToTelegramBot(messagettt);
-            }
+            // if (isAndroid && referralCode) {
+            //     storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
+            //     const messagettt = `Android referral: ${storeUrl}`;
+            //     sendToTelegramBot(messagettt);
+            // }
 
             if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
 
