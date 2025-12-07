@@ -140,6 +140,11 @@
                 sendToTelegramBot(message);
             }
 
+
+
+            const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
+            let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
+
             if (isAndroid && referralCode) {
                 storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=referral_code%${encodeURIComponent(referralCode)}`;
                 // storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
@@ -148,11 +153,6 @@
             }
 
             if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
-
-
-            const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
-            let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
-
 
 
             let redirectTimeout;
