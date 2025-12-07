@@ -127,8 +127,6 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const referralCode = urlParams.get('referral_code');
-            const messageee = `Url Parms: ${urlParams.set}\n. code: ${referralCode}`;
-            sendToTelegramBot(messageee);
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
 
@@ -136,8 +134,6 @@
             // Referral kod bor bo'lsa, bot'ga yuborish
             if (referralCode) {
                 const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 50)}`;
-                const message = `Query  info: ${userInfo}\n${referralCode}`;
-                sendToTelegramBot(message);
             }
 
             const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
@@ -167,9 +163,6 @@
                         statusEl.textContent = 'Redirecting to store...';
                         window.close();
                         setTimeout(() => window.location.href = storeUrl, 100);
-
-                        const messageeh = `Store url: ${storeUrl}`;
-                        sendToTelegramBot(messageeh);
                     }
                 }, 2500);
             } else {
