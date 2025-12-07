@@ -140,20 +140,17 @@
                 sendToTelegramBot(message);
             }
 
-
-
             const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
             if (isAndroid && referralCode) {
-                storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=referral_code%${encodeURIComponent(referralCode)}`;
+                storeUrl += `referrer=referral_code%${encodeURIComponent(referralCode)}`;
                 // storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
                 const message = `Android referral: ${referralCode}\n${userInfo}`;
                 sendToTelegramBot(message);
             }
 
             if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
-
 
             let redirectTimeout;
             const cleanup = setupAppOpenDetection(() => {
