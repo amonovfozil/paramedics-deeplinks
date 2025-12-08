@@ -91,9 +91,6 @@
         function normalizeReferralCode(raw) {
             if (!raw) return '';
             let value = raw.trim();
-            value = value.replace(/=3D/gi, '='); // undo quoted-printable artifacts
-            if (/^3D/i.test(value)) value = value.slice(2);
-            if (value.startsWith('=')) value = value.slice(1);
             return value;
         }
 
