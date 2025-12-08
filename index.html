@@ -87,6 +87,16 @@
             return { isIOS, isAndroid, isMobile: isIOS || isAndroid, isApple: isIOS || /macintosh/.test(ua) && !isIOS };
         }
 
+        // Some channels (e.g. iOS mail/clipboard) transform "=" into "3D" (quoted-printable). Clean that up.
+        function normalizeReferralCode(raw) {
+            if (!raw) return '';
+            let value = raw.trim();
+            value = value.replace(/=3D/gi, '='); // undo quoted-printable artifacts
+            if (/^3D/i.test(value)) value = value.slice(2);
+            if (value.startsWith('=')) value = value.slice(1);
+            return value;
+        }
+
         function buildUrls(referralCode, isApple) {
             const base = isApple ? APP_STORE : PLAY_STORE;
             let storeUrl = base + (referralCode ? (base.includes('?') ? '&' : '?') + 'referrer=referral_code%' + encodeURIComponent(referralCode) : '');
@@ -126,7 +136,7 @@
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = urlParams.get('referral_code');
+            const referralCode = normalizeReferralCode(urlParams.get('referral_code'));
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
 
