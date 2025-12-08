@@ -87,10 +87,14 @@
             return { isIOS, isAndroid, isMobile: isIOS || isAndroid, isApple: isIOS || /macintosh/.test(ua) && !isIOS };
         }
 
-        // Some channels (e.g. iOS mail/clipboard) transform "=" into "3D" (quoted-printable). Clean that up.
         function normalizeReferralCode(raw) {
             if (!raw) return '';
             let value = raw.trim();
+
+            // Ba'zi klientlar "=" ni "=3D" qilib yuboradi (quoted-printable).
+            // Kodning o'zi "3D..." bilan boshlansa, uni saqlab qolamiz.
+            value = value.replace(/=3D/gi, '=');
+
             return value;
         }
 
