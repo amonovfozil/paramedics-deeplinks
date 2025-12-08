@@ -146,7 +146,9 @@
             //     sendToTelegramBot(message);
             // }
 
-            if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
+            // if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
+            if (isIOS && referralCode) copyToClipboard(`referral:${referralCode}`);
+
 
             let redirectTimeout;
             const cleanup = setupAppOpenDetection(() => {
