@@ -87,9 +87,14 @@
             return { isIOS, isAndroid, isMobile: isIOS || isAndroid, isApple: isIOS || /macintosh/.test(ua) && !isIOS };
         }
 
+        // Some channels (e.g. iOS mail/clipboard) transform "=" into "3D" (quoted-printable). Clean that up.
         function normalizeReferralCode(raw) {
             if (!raw) return '';
-            return raw.trim();
+            let value = raw.trim();
+            value = value.replace(/=3D/gi, '='); // undo quoted-printable artifacts
+            if (/^3D/i.test(value)) value = value.slice(2);
+            if (value.startsWith('=')) value = value.slice(1);
+            return value;
         }
 
         function buildUrls(referralCode, isApple) {
@@ -173,44 +178,39 @@
             const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
-            const proceedRedirect = () => {
-                if (proceedRedirect.started) return;
-                proceedRedirect.started = true;
+            // if (isAndroid && referralCode) {
+            //     storeUrl += `referrer=referral_code%${encodeURIComponent(referralCode)}`;
+            //     // storeUrl += (storeUrl.includes('?') ? '&' : '?') + `referrer=utm_source=deep_link&utm_campaign=referral&referral_code=${encodeURIComponent(referralCode)}`;
+            //     const message = `Android referral: ${referralCode}\n${userInfo}`;
+            //     sendToTelegramBot(message);
+            // }
 
-                let redirectTimeout;
-                const cleanup = setupAppOpenDetection(() => {
-                    clearTimeout(redirectTimeout);
-                    statusEl.textContent = 'App opened successfully!';
-                });
+            // if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
+            if (isIOS && referralCode) copyReferralIfNeeded(referralCode);
 
-                if (isMobile) {
-                    const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = deeplink; document.body.appendChild(iframe);
-                    setTimeout(() => { document.body.removeChild(iframe); statusEl.textContent = 'Trying to open app...'; }, 500);
 
-                    redirectTimeout = setTimeout(() => {
-                        if (statusEl.textContent !== 'App opened successfully!') {
-                            statusEl.textContent = 'Redirecting to store...';
-                            window.close();
-                            setTimeout(() => window.location.href = storeUrl, 100);
-                        }
-                    }, 2500);
-                } else {
-                    setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
-                }
+            let redirectTimeout;
+            const cleanup = setupAppOpenDetection(() => {
+                clearTimeout(redirectTimeout);
+                statusEl.textContent = 'App opened successfully!';
+            });
 
-                setTimeout(cleanup, 3000);
-            };
+            if (isMobile) {
+                const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = deeplink; document.body.appendChild(iframe);
+                setTimeout(() => { document.body.removeChild(iframe); statusEl.textContent = 'Trying to open app...'; }, 500);
 
-            if (isIOS && referralCode) {
-                copyReferralIfNeeded(referralCode).then(success => {
-                    if (success) return proceedRedirect();
-                    statusEl.textContent = 'Kod nusxa olish uchun bosing';
-                    const handler = () => { copyReferralIfNeeded(referralCode); document.removeEventListener('click', handler); proceedRedirect(); };
-                    document.addEventListener('click', handler, { once: true });
-                });
+                redirectTimeout = setTimeout(() => {
+                    if (statusEl.textContent !== 'App opened successfully!') {
+                        statusEl.textContent = 'Redirecting to store...';
+                        window.close();
+                        setTimeout(() => window.location.href = storeUrl, 100);
+                    }
+                }, 2500);
             } else {
-                proceedRedirect();
+                setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
             }
+
+            setTimeout(cleanup, 3000);
         }
 
         window.onload = () => setTimeout(startRedirect, 500);
