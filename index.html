@@ -212,13 +212,10 @@
                         statusEl.textContent = 'Redirecting to store...';
 
                         // In-app/webview (Telegram va boshqalar) da yopib tashlab store'ga o'tamiz.
-                        const stayOnPage = (isSafari || isDesktop) && !isWebView;
-                        if (stayOnPage) {
-                            window.location.href = storeUrl;
-                        } else {
-                            try { window.close(); } catch (e) { /* ignore */ }
-                            setTimeout(() => window.location.replace(storeUrl), 100);
-                        }
+
+                        try { window.close(); } catch (e) { /* ignore */ }
+                        setTimeout(() => window.location.replace(storeUrl), 100);
+
                     }
                 }, 2500);
             } else {
