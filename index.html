@@ -92,8 +92,13 @@
             let value = raw.trim();
 
             // Ba'zi klientlar "=" ni "=3D" qilib yuboradi (quoted-printable).
-            // Kodning o'zi "3D..." bilan boshlansa, uni saqlab qolamiz.
             value = value.replace(/=3D/gi, '=');
+
+            // Agar kod "3D" bilan boshlangan bo'lsa, uni ham quoted-printable qoldig'i deb ko'ramiz.
+            // Masalan: referral_code=3DABC123 => ABC123
+            if (/^3D[A-Za-z0-9]/.test(value)) {
+                value = value.replace(/^3D+/i, '');
+            }
 
             return value;
         }
@@ -203,12 +208,15 @@
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
-                        window.close();
-                        setTimeout(() => window.location.href = storeUrl, 100);
+                        // Safari/Telegram ichida ishonchliroq variant: replace bilan App Store'ga o'tamiz.
+                        window.location.replace(storeUrl);
                     }
                 }, 2500);
             } else {
-                setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
+                setTimeout(() => {
+                    statusEl.textContent = 'Redirecting to store...';
+                    window.location.replace(storeUrl);
+                }, 1000);
             }
 
             setTimeout(cleanup, 3000);
