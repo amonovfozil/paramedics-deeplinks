@@ -99,7 +99,13 @@
 
         function buildUrls(referralCode, isApple) {
             const base = isApple ? APP_STORE : PLAY_STORE;
-            let storeUrl = base + (referralCode ? (base.includes('?') ? '&' : '?') + 'referrer=referral_code%' + encodeURIComponent(referralCode) : '');
+            // App Store: do NOT add params (caused "app not available" when query present).
+            // Play Store: use referrer param and keep the "=" encoded so Play parses it.
+            let storeUrl = base;
+            if (referralCode && !isApple) {
+                const sep = base.includes('?') ? '&' : '?';
+                storeUrl += `${sep}referrer=referral_code%3D${encodeURIComponent(referralCode)}`;
+            }
             const deeplink = 'paramedicsdr://deeplink' + (referralCode ? '?referral_code=' + encodeURIComponent(referralCode) : '');
 
             const messageeh = `Store url: ${storeUrl} \nDeepLink: ${deeplink}`;
