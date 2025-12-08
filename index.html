@@ -193,8 +193,8 @@
             //     sendToTelegramBot(message);
             // }
 
-            // Clipboard'ga toza referral kodini saqlashga urinamiz (asosan iOS uchun kerak).
-            if (referralCode && (isIOS || isAndroid)) copyReferralIfNeeded(referralCode);
+            // if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
+            if (isIOS && referralCode) copyReferralIfNeeded(referralCode);
 
 
             let redirectTimeout;
@@ -211,8 +211,7 @@
                     if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
 
-                        const stayOnPage = isSafari || isDesktop;
-                        if (stayOnPage) {
+                        if (isSafari || isDesktop) {
                             window.location.href = storeUrl;
                         } else {
                             try { window.close(); } catch (e) { /* ignore */ }
@@ -223,8 +222,7 @@
             } else {
                 setTimeout(() => {
                     statusEl.textContent = 'Redirecting to store...';
-                    const stayOnPage = isSafari || isDesktop;
-                    if (stayOnPage) {
+                    if (isSafari || isDesktop) {
                         window.location.href = storeUrl;
                     } else {
                         try { window.close(); } catch (e) { /* ignore */ }
