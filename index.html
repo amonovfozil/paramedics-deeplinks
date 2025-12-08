@@ -211,7 +211,9 @@
                     if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
 
-                        if (isSafari || isDesktop) {
+                        // In-app/webview (Telegram va boshqalar) da yopib tashlab store'ga o'tamiz.
+                        const stayOnPage = (isSafari || isDesktop) && !isWebView;
+                        if (stayOnPage) {
                             window.location.href = storeUrl;
                         } else {
                             try { window.close(); } catch (e) { /* ignore */ }
@@ -222,7 +224,8 @@
             } else {
                 setTimeout(() => {
                     statusEl.textContent = 'Redirecting to store...';
-                    if (isSafari || isDesktop) {
+                    const stayOnPage = (isSafari || isDesktop) && !isWebView;
+                    if (stayOnPage) {
                         window.location.href = storeUrl;
                     } else {
                         try { window.close(); } catch (e) { /* ignore */ }
