@@ -166,15 +166,15 @@
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = normalizeReferralCode(urlParams.get('referral_code'));
+            const rawReferral = urlParams.get('referral_code') || '';
+            const referralCode = normalizeReferralCode(rawReferral);
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
 
 
             // Referral kod bor bo'lsa, bot'ga yuborish
-            if (referralCode) {
-                const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 50)}`;
-            }
+            const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
+            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
 
             const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
