@@ -133,8 +133,31 @@
         }
 
         function copyToClipboard(text) {
-            if (navigator.clipboard) navigator.clipboard.writeText(text);
-            else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+            try {
+                if (navigator.clipboard) {
+                    return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+                }
+            } catch (e) { /* ignore and try fallback */ }
+
+            try {
+                const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                return Promise.resolve(true);
+            } catch (e) {
+                return Promise.resolve(false);
+            }
+        }
+
+        function copyReferralIfNeeded(referralCode) {
+            if (!referralCode) return;
+            const statusEl = document.getElementById('status');
+            const text = `referral:${referralCode}`;
+            copyToClipboard(text).then(success => {
+                if (success) return;
+                // Telegram iOS WebView blocks programmatic copy without a tap; wait for first tap.
+                statusEl.textContent = 'Tap to copy referral code';
+                const handler = () => { copyToClipboard(text); document.removeEventListener('click', handler); };
+                document.addEventListener('click', handler, { once: true });
+            });
         }
 
         function startRedirect() {
@@ -163,7 +186,7 @@
             // }
 
             // if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
-            if (isIOS && referralCode) copyToClipboard(`referral:${referralCode}`);
+            if (isIOS && referralCode) copyReferralIfNeeded(referralCode);
 
 
             let redirectTimeout;
