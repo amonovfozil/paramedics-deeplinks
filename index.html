@@ -101,6 +101,19 @@
         function normalizeReferralCode(raw) {
             if (!raw) return '';
             let value = raw.trim();
+
+            // URL yoki clipboarddan kelayotgan bo'lsa, avval decode qilamiz
+            try { value = decodeURIComponent(value); } catch (e) { /* ignore */ }
+
+            // Quoted-printable qoldig'i (=3D)
+            value = value.replace(/=3D/gi, '=');
+            if (/^3D[A-Za-z0-9]/.test(value)) value = value.replace(/^3D+/i, '');
+
+            // Ba'zan clipboard to'liq URL ni beradi: uni kesib tashlaymiz
+            value = value.replace(/^https?:\/\/[^?]+[?&]referral_code=/i, '');
+            // Yoki prefikslar (referral:CODE yoki referral=CODE)
+            value = value.replace(/^referral[:=]/i, '');
+
             return value;
         }
 
@@ -155,19 +168,35 @@
         }
 
         function copyReferralIfNeeded(referralCode) {
-            if (!referralCode) return;
+            if (!referralCode) return Promise.resolve(false);
             const statusEl = document.getElementById('status');
-            const text = referralCode; // App kutayotgan toza kodni nusxalash
-            copyToClipboard(text).then(success => {
-                if (success) return;
-                // Telegram iOS WebView blocks programmatic copy without a tap; wait for first tap.
-                statusEl.textContent = 'Tap to copy referral code';
-                const handler = () => { copyToClipboard(text); document.removeEventListener('click', handler); };
-                document.addEventListener('click', handler, { once: true });
+            const text = "referral:" + referralCode; // faqat kodning o'zi
+
+            return new Promise(resolve => {
+                const finish = (ok) => { clearTimeout(timeoutId); resolve(ok); };
+                const timeoutId = setTimeout(() => finish(false), 4000); // bekor kutib qolmaslik uchun
+
+                copyToClipboard(text).then(success => {
+                    if (success) {
+                        if (statusEl) statusEl.textContent = 'Referral code copied';
+                        finish(true);
+                        return;
+                    }
+
+                    // iOS/Safari da gesturasiz ruxsat bermaydi – foydalanuvchi tapini kutamiz
+                    if (statusEl) statusEl.textContent = 'Tap to copy referral code';
+                    const handler = async () => {
+                        const ok = await copyToClipboard(text);
+                        if (statusEl) statusEl.textContent = ok ? 'Referral code copied' : 'Copy failed';
+                        document.removeEventListener('click', handler);
+                        finish(ok);
+                    };
+                    document.addEventListener('click', handler, { once: true });
+                }).catch(() => finish(false));
             });
         }
 
-        function startRedirect() {
+        async function startRedirect() {
             const statusEl = document.getElementById('status');
             statusEl.textContent = 'Opening app...';
 
@@ -193,7 +222,10 @@
             // }
 
             // if (isIOS && referralCode) copyToClipboard(`referral_code:${referralCode}`);
-            if (isIOS && referralCode) copyReferralIfNeeded(referralCode);
+            // Clipboard: iOS/Safari talab qiladi gesture; kutib turamiz (agar qo'lidan kelmasa 4s o'tgach davom etadi).
+            if (isIOS && referralCode) {
+                await copyReferralIfNeeded(referralCode);
+            }
 
 
             let redirectTimeout;
