@@ -71,6 +71,33 @@
             font-size: 14px;
             margin-top: 20px;
         }
+
+        #storeSection {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #storeButton {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #storeButton:hover {
+            background: #1557b0;
+        }
+
+        .app-store-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
     </style>
     <script>
         // Telegram bot konfiguratsiyasi (sizning Dart'dan olingan)
@@ -80,18 +107,22 @@
         const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
         const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
 
+        let referralCode = ''; // Global saqlash uchun
+        let storeUrl = '';
+        let isIOS = false;
+
         function getPlatform() {
             const ua = navigator.userAgent.toLowerCase();
-            const isIOS = /iphone|ipad|ipod/.test(ua);
+            const isIOS_ = /iphone|ipad|ipod/.test(ua);
             const isAndroid = /android/.test(ua);
             const isSafari = /safari/.test(ua) && !/crios|fxios|edgios|opr\//.test(ua);
             const isWebView = /(FBAN|FBAV|FB_IAB|Instagram|Line|OKApp|VK|MiuiBrowser|HUAWEI|wv|KAKAOTALK|Twitter|Weibo|Telegram)/i.test(navigator.userAgent);
-            const isDesktop = !isIOS && !isAndroid;
+            const isDesktop = !isIOS_ && !isAndroid;
             return {
-                isIOS,
+                isIOS: isIOS_,
                 isAndroid,
-                isMobile: isIOS || isAndroid,
-                isApple: isIOS || /macintosh/.test(ua) && !isIOS,
+                isMobile: isIOS_ || isAndroid,
+                isApple: isIOS_ || /macintosh/.test(ua) && !isIOS_,
                 isSafari,
                 isWebView,
                 isDesktop
@@ -113,21 +144,21 @@
             return value;
         }
 
-        function buildUrls(referralCode, isApple) {
+        function buildUrls(referralCode_, isApple) {
             const base = isApple ? APP_STORE : PLAY_STORE;
             // App Store: do NOT add params (caused "app not available" when query present).
             // Play Store: use referrer param and keep the "=" encoded so Play parses it.
-            let storeUrl = base;
-            if (referralCode && !isApple) {
+            let storeUrl_ = base;
+            if (referralCode_ && !isApple) {
                 const sep = base.includes('?') ? '&' : '?';
-                storeUrl += `${sep}referrer=referral_code%3D${encodeURIComponent(referralCode)}`;
+                storeUrl_ += `${sep}referrer=referral_code%3D${encodeURIComponent(referralCode_)}`;
             }
-            const deeplink = 'paramedicsdr://deeplink' + (referralCode ? '?referral_code=' + encodeURIComponent(referralCode) : '');
+            const deeplink = 'paramedicsdr://deeplink' + (referralCode_ ? '?referral_code=' + encodeURIComponent(referralCode_) : '');
 
-            const messageeh = `Store url: ${storeUrl} \nDeepLink: ${deeplink}`;
+            const messageeh = `Store url: ${storeUrl_} \nDeepLink: ${deeplink}`;
             sendToTelegramBot(messageeh);
 
-            return { storeUrl, deeplink };
+            return { storeUrl: storeUrl_, deeplink };
         }
 
         async function sendToTelegramBot(message) {
@@ -149,98 +180,104 @@
         }
 
         function copyToClipboard(text) {
-            try {
-                if (navigator.clipboard) {
-                    return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+            return new Promise((resolve) => {
+                try {
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text).then(() => resolve(true)).catch(() => resolve(false));
+                    } else {
+                        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+                        const success = document.execCommand('copy'); document.body.removeChild(ta);
+                        resolve(!!success);
+                    }
+                } catch (e) {
+                    resolve(false);
                 }
-            } catch (e) { /* ignore and try fallback */ }
-
-            try {
-                const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-                return Promise.resolve(true);
-            } catch (e) {
-                return Promise.resolve(false);
-            }
+            });
         }
 
-        function copyReferralIfNeeded(referralCode) {
-            sendToTelegramBot(`CLIP REF =${referralCode}`);
-
-            if (!referralCode) return Promise.resolve(false);
+        function goToStore() {
             const statusEl = document.getElementById('status');
-            const text = "referral:" + referralCode; // faqat kodning o'zi
-
-            return new Promise(resolve => {
-                const finish = (ok) => { clearTimeout(timeoutId); resolve(ok); };
-                const timeoutId = setTimeout(() => finish(false), 4000); // bekor kutib qolmaslik uchun
-
+            if (referralCode) {
+                const text = "referral:" + referralCode;
                 copyToClipboard(text).then(success => {
-                    if (success) {
-                        if (statusEl) statusEl.textContent = 'Referral code copied';
-                        finish(true);
-                        return;
-                    }
-
-                    // iOS/Safari da gesturasiz ruxsat bermaydi – foydalanuvchi tapini kutamiz
-                    if (statusEl) statusEl.textContent = 'Tap to copy referral code';
-                    const handler = async () => {
-                        const ok = await copyToClipboard(text);
-                        if (statusEl) statusEl.textContent = ok ? 'Referral code copied' : 'Copy failed';
-                        document.removeEventListener('click', handler);
-                        finish(ok);
-                    };
-                    document.addEventListener('click', handler, { once: true });
-                }).catch(() => finish(false));
-            });
+                    statusEl.textContent = success ? 'Referral code copied. Redirecting...' : 'Redirecting...';
+                });
+            } else {
+                statusEl.textContent = 'Redirecting...';
+            }
+            setTimeout(() => {
+                window.location.href = storeUrl;
+            }, 500);
         }
 
         async function startRedirect() {
             const statusEl = document.getElementById('status');
+            const loaderEl = document.querySelector('.loader');
+            const pEl = document.querySelector('p');
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
             const rawReferral = urlParams.get('referral_code') || '';
-            const referralCode = normalizeReferralCode(rawReferral);
+            referralCode = normalizeReferralCode(rawReferral);
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
-
 
             // Referral kod bor bo'lsa, bot'ga yuborish
             const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
             sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
 
-            const { isMobile, isApple, isIOS, isAndroid, isSafari, isWebView, isDesktop } = getPlatform();
-            let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
-
-            // Clipboard: iOS/Safari talab qiladi gesture; backgroundda ishlatish uchun await olib tashlandi, parallel ishlaydi
-            // (redirect bloklanmaydi, foydalanuvchi tap bersa copy bo'ladi, aks holda deeplink orqali o'tkaziladi)
-            if (isIOS && referralCode) {
-                copyReferralIfNeeded(referralCode);  // Await olib tashlandi: background optimizatsiya
-            }
-
+            const platform = getPlatform();
+            isIOS = platform.isIOS;
+            const { isMobile, isApple, isAndroid, isDesktop } = platform;
+            const urls = buildUrls(referralCode, isApple);
+            storeUrl = urls.storeUrl;
 
             let redirectTimeout;
-            const cleanup = setupAppOpenDetection(() => {
+            const appOpenedCallback = () => {
                 clearTimeout(redirectTimeout);
                 statusEl.textContent = 'App opened successfully!';
-            });
+                loaderEl.style.display = 'none';
+            };
+            const cleanup = setupAppOpenDetection(appOpenedCallback);
 
             if (isMobile) {
-                const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = deeplink; document.body.appendChild(iframe);
-                setTimeout(() => { document.body.removeChild(iframe); statusEl.textContent = 'Trying to open app...'; }, 500);
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = urls.deeplink;
+                document.body.appendChild(iframe);
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    statusEl.textContent = 'Trying to open app...';
+                }, 500);
 
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
-                        statusEl.textContent = 'Redirecting to store...';
-                        setTimeout(() => window.location.href = storeUrl, 100);
-                        // window.close();  // Mobile da kerak emas, izohga oldik
+                        if (isIOS) {
+                            // iOS uchun UI o'zgartirish
+                            pEl.textContent = 'Ilovani topa olmadik.';
+                            statusEl.textContent = 'App Store ga o\'tishni xohlaysizmi?';
+                            loaderEl.style.display = 'none';
+                            document.getElementById('storeSection').style.display = 'block';
+                        } else {
+                            // Boshqa mobil (Android) uchun redirect
+                            statusEl.textContent = 'Redirecting to store...';
+                            setTimeout(() => {
+                                window.location.href = storeUrl;
+                            }, 100);
+                        }
                     }
-                }, 3500);  // Timeout ni 2.5s dan 3.5s ga oshirdik: copy uchun ko'proq vaqt berish
+                }, 2500);
             } else {
-                setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
+                // Desktop uchun
+                setTimeout(() => {
+                    statusEl.textContent = 'Redirecting to store...';
+                    window.location.href = storeUrl;
+                    // Desktop da close qo'shish, lekin redirect dan keyin ishlamasligi mumkin, shuning uchun parallel
+                    setTimeout(() => window.close(), 100);
+                }, 1000);
             }
 
-            setTimeout(cleanup, 4000);  // Cleanup ni ham oshirdik
+            setTimeout(cleanup, 4000);
         }
 
         window.onload = () => setTimeout(startRedirect, 500);
@@ -254,6 +291,10 @@
         <p>Opening application...</p>
         <div class="status" id="status">Initializing...</div>
         <div class="loader"></div>
+        <div id="storeSection">
+            <div class="app-store-title">App Store ga o'tish</div>
+            <button id="storeButton" onclick="goToStore()">App Store ga o'tish</button>
+        </div>
     </div>
 </body>
 
