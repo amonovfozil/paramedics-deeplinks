@@ -105,10 +105,6 @@
             // URL yoki clipboarddan kelayotgan bo'lsa, avval decode qilamiz
             try { value = decodeURIComponent(value); } catch (e) { /* ignore */ }
 
-            // Quoted-printable qoldig'i (=3D)
-            value = value.replace(/=3D/gi, '=');
-            if (/^3D[A-Za-z0-9]/.test(value)) value = value.replace(/^3D+/i, '');
-
             // Ba'zan clipboard to'liq URL ni beradi: uni kesib tashlaymiz
             value = value.replace(/^https?:\/\/[^?]+[?&]referral_code=/i, '');
             // Yoki prefikslar (referral:CODE yoki referral=CODE)
