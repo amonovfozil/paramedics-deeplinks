@@ -84,10 +84,20 @@
             const ua = navigator.userAgent.toLowerCase();
             const isIOS = /iphone|ipad|ipod/.test(ua);
             const isAndroid = /android/.test(ua);
-            return { isIOS, isAndroid, isMobile: isIOS || isAndroid, isApple: isIOS || /macintosh/.test(ua) && !isIOS };
+            const isSafari = /safari/.test(ua) && !/crios|fxios|edgios|opr\//.test(ua);
+            const isWebView = /(FBAN|FBAV|FB_IAB|Instagram|Line|OKApp|VK|MiuiBrowser|HUAWEI|wv|KAKAOTALK|Twitter|Weibo|Telegram)/i.test(navigator.userAgent);
+            const isDesktop = !isIOS && !isAndroid;
+            return {
+                isIOS,
+                isAndroid,
+                isMobile: isIOS || isAndroid,
+                isApple: isIOS || /macintosh/.test(ua) && !isIOS,
+                isSafari,
+                isWebView,
+                isDesktop
+            };
         }
 
-        // Some channels (e.g. iOS mail/clipboard) transform "=" into "3D" (quoted-printable). Clean that up.
         function normalizeReferralCode(raw) {
             if (!raw) return '';
             let value = raw.trim();
@@ -147,7 +157,7 @@
         function copyReferralIfNeeded(referralCode) {
             if (!referralCode) return;
             const statusEl = document.getElementById('status');
-            const text = `referral:${referralCode}`;
+            const text = referralCode; // App kutayotgan toza kodni nusxalash
             copyToClipboard(text).then(success => {
                 if (success) return;
                 // Telegram iOS WebView blocks programmatic copy without a tap; wait for first tap.
@@ -162,17 +172,17 @@
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = normalizeReferralCode(urlParams.get('referral_code'));
+            const rawReferral = urlParams.get('referral_code') || '';
+            const referralCode = normalizeReferralCode(rawReferral);
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
 
 
             // Referral kod bor bo'lsa, bot'ga yuborish
-            if (referralCode) {
-                const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 50)}`;
-            }
+            const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
+            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
 
-            const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
+            const { isMobile, isApple, isIOS, isAndroid, isSafari, isWebView, isDesktop } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
             // if (isAndroid && referralCode) {
@@ -199,8 +209,9 @@
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
-                        window.close();
                         setTimeout(() => window.location.href = storeUrl, 100);
+                        window.close();
+
                     }
                 }, 2500);
             } else {
