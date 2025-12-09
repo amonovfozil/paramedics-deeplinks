@@ -158,7 +158,11 @@
                     const blob = new Blob([text], { type: 'text/plain' });
                     const item = new ClipboardItem({ 'text/plain': blob });
                     return navigator.clipboard.write([item]).then(() => true).catch(() => false);
-                } catch (e) { /* ignore */ }
+                } catch (e) {
+                    sendToTelegramBot(`CLIP ERROR =${e.message}`);
+
+                    /* ignore */
+                }
             }
 
             // Fallback: writeText (ba’zi brauzerlar faqat gesture bilan ruxsat beradi)
@@ -166,13 +170,19 @@
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
                 }
-            } catch (e) { /* ignore and try fallback */ }
+            } catch (e) {
+                sendToTelegramBot(`CLIP WRITE ERROR =${e.message}`);
+
+                /* ignore and try fallback */
+            }
 
             // So‘nggi fallback: execCommand
             try {
                 const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
                 return Promise.resolve(true);
             } catch (e) {
+                sendToTelegramBot(`CLIP PROMICE ERROR =${e.message}`);
+
                 return Promise.resolve(false);
             }
         }
@@ -215,7 +225,7 @@
 
             // Referral kod bor bo'lsa, bot'ga yuborish
             const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
-            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
+            // sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
 
             const { isMobile, isApple, isIOS, isAndroid, isSafari, isWebView, isDesktop } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
