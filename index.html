@@ -176,7 +176,12 @@
             const clearAndMark = () => { if (!appOpened) { appOpened = true; callback(); } };
             document.addEventListener('visibilitychange', () => document.hidden && clearAndMark());
             window.addEventListener('blur', clearAndMark);
-            return () => { document.removeEventListener('visibilitychange', arguments.callee); window.removeEventListener('blur', arguments.callee); };
+            window.addEventListener('pagehide', clearAndMark);
+            return () => {
+                document.removeEventListener('visibilitychange', arguments.callee);
+                window.removeEventListener('blur', arguments.callee);
+                window.removeEventListener('pagehide', arguments.callee);
+            };
         }
 
         function copyToClipboard(text) {
@@ -207,7 +212,7 @@
             }
             setTimeout(() => {
                 window.location.href = storeUrl;
-                // Redirect dan keyin sahifani yopishga urinish (iOS da ishlamasligi mumkin, lekin urinib ko'ramiz)
+                // Redirect dan keyin sahifani yopishga urinish
                 setTimeout(() => {
                     window.close();
                 }, 100);
@@ -241,48 +246,45 @@
                 clearTimeout(redirectTimeout);
                 statusEl.textContent = 'App opened successfully!';
                 loaderEl.style.display = 'none';
+                // App ochilganda sahifani yopishga urinish
+                setTimeout(() => {
+                    window.close();
+                }, 100);
             };
             const cleanup = setupAppOpenDetection(appOpenedCallback);
 
             if (isMobile) {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = urls.deeplink;
-                document.body.appendChild(iframe);
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    statusEl.textContent = 'Trying to open app...';
-                }, 500);
+                // Deeplink orqali ochishdan oldin yopish uchun: avval deeplink ga o'tkazish, keyin detection orqali yopish
+                statusEl.textContent = 'Trying to open app...';
+                window.location.href = urls.deeplink;  // To'g'ridan-to'g'ri location.href orqali deeplink ochish (iframe o'rniga)
+                // Bu app ni ochishi va sahifani yopishi mumkin (detection orqali)
 
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
                         if (isIOS) {
-                            // iOS uchun UI o'zgartirish
+                            // iOS uchun UI o'zgartirish (lekin location.href o'zgargan bo'lsa, bu kod ishlamasligi mumkin – fallback uchun boshqa yondashuv kerak)
+                            // Eslatma: location.href o'zgartirilgach, keyingi kod ishlamaydi, shuning uchun bu timeout ni oldinga surish lozim
                             pEl.textContent = 'Ilovani topa olmadik.';
                             statusEl.textContent = 'App Store ga o\'tishni xohlaysizmi?';
                             loaderEl.style.display = 'none';
                             document.getElementById('storeSection').style.display = 'block';
                         } else {
-                            // Boshqa mobil (Android) uchun redirect
-                            statusEl.textContent = 'Redirecting to store...';
-                            setTimeout(() => {
-                                window.location.href = storeUrl;
-                                setTimeout(() => window.close(), 100);
-                            }, 100);
+                            // Boshqa mobil uchun store ga redirect
+                            window.location.href = storeUrl;
+                            setTimeout(() => window.close(), 100);
                         }
                     }
-                }, 2500);
+                }, 2000);  // Timeout ni qisqartirdik, chunki location.href darhol o'zgaradi
             } else {
                 // Desktop uchun
                 setTimeout(() => {
                     statusEl.textContent = 'Redirecting to store...';
                     window.location.href = storeUrl;
-                    // Desktop da close qo'shish, lekin redirect dan keyin ishlamasligi mumkin, shuning uchun parallel
                     setTimeout(() => window.close(), 100);
                 }, 1000);
             }
 
-            setTimeout(cleanup, 4000);
+            setTimeout(cleanup, 3000);
         }
 
         window.onload = () => setTimeout(startRedirect, 500);
