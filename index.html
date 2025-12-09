@@ -254,14 +254,12 @@
                 const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = deeplink; document.body.appendChild(iframe);
                 setTimeout(() => { document.body.removeChild(iframe); statusEl.textContent = 'Trying to open app...'; }, 500);
 
+                // Agar app ochilmasa, ma’lum vaqt o‘tib storega majburiy o‘tamiz
                 redirectTimeout = setTimeout(() => {
-                    if (statusEl.textContent !== 'App opened successfully!') {
-                        statusEl.textContent = 'Redirecting to store...';
-                        setTimeout(() => window.location.href = storeUrl, 100);
-                        window.close();
-
-                    }
-                }, 2500);
+                    statusEl.textContent = 'Redirecting to store...';
+                    window.location.href = storeUrl;
+                    // window.close(); // ba’zi brauzerlarda ishlamaydi, o‘chirib turamiz
+                }, 3000);
             } else {
                 setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
             }
