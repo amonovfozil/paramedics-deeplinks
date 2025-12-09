@@ -3,928 +3,544 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Paramedics Dr - Smart Redirect</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramedics Dr - Auto Clipboard</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             text-align: center;
+            color: white;
         }
 
         .container {
-            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
             padding: 30px;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.6s ease-out;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            animation: fadeIn 0.5s ease;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(-20px);
             }
 
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        .logo {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-            border-radius: 24px;
-            margin: 0 auto 25px;
-            color: white;
-            font-size: 48px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(26, 115, 232, 0.3);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        h1 {
-            color: #202124;
-            margin-bottom: 10px;
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .subtitle {
-            color: #5f6368;
-            margin-bottom: 30px;
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        .status-container {
-            background: #f8f9fa;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 25px 0;
-            border: 2px solid #e8eaed;
-            transition: all 0.3s ease;
-        }
-
-        .status-container.active {
-            border-color: #1a73e8;
-            background: #e8f0fe;
         }
 
         .status {
-            color: #5f6368;
-            font-size: 15px;
-            font-weight: 500;
-            margin: 0;
-            min-height: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .status.success {
-            color: #0d8050;
-        }
-
-        .status.error {
-            color: #d93025;
-        }
-
-        .status.warning {
-            color: #f9ab00;
-        }
-
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(26, 115, 232, 0.1);
-            border-top: 4px solid #1a73e8;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-            position: relative;
-        }
-
-        .loader::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: rgba(26, 115, 232, 0.2);
-            animation: spin 2s linear infinite reverse;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .platform-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: #e8f0fe;
-            color: #1a73e8;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        .manual-copy {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: #fff8e1;
-            border-radius: 12px;
-            border-left: 4px solid #f9ab00;
-        }
-
-        .manual-copy.show {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .copy-btn {
-            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3);
-        }
-
-        .copy-btn:active {
-            transform: translateY(0);
-        }
-
-        .copy-btn.success {
-            background: linear-gradient(135deg, #0d8050 0%, #0b5c3c 100%);
-        }
-
-        .footer {
-            margin-top: 30px;
-            color: #9aa0a6;
-            font-size: 13px;
-            border-top: 1px solid #e8eaed;
-            padding-top: 20px;
-        }
-
-        .progress-bar {
-            height: 4px;
-            background: #e8eaed;
-            border-radius: 2px;
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
             margin: 20px 0;
-            overflow: hidden;
+            min-height: 24px;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #1a73e8, #34a853);
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.3s ease;
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        .loading {
+            color: #17a2b8;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="logo">P</div>
-        <h1>Paramedics Dr</h1>
-        <p class="subtitle">Smart medical assistant for healthcare professionals</p>
-
-        <div class="status-container" id="statusContainer">
-            <div class="status" id="status">Initializing redirect...</div>
-            <div id="platformInfo" class="platform-badge"></div>
+        <h1 style="color: #333;">Paramedics Dr</h1>
+        <p style="color: #666;">Opening application...</p>
+        <div id="status" class="status loading">Initializing...</div>
+        <div class="loader"
+            style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;">
         </div>
-
-        <div class="loader" id="loader"></div>
-
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-
-        <div class="manual-copy" id="manualCopy">
-            <p style="margin: 0 0 10px 0; color: #5f6368;">
-                <strong>Manual Copy Required:</strong> Safari/Telegram security requires manual action
-            </p>
-            <button class="copy-btn" id="manualCopyBtn">
-                <span id="copyIcon">📋</span>
-                <span id="copyText">Copy Referral Code</span>
-            </button>
-        </div>
-
-        <p class="footer">
-            Redirecting to app store • Powered by Paramedics Dr
-        </p>
     </div>
 
     <script>
-        // ==================== KONFIGURATSIYA ====================
-        const CONFIG = {
-            BOT_TOKEN: '7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA',
-            CHAT_ID: '5851002245',
-            PLAY_STORE: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
-            APP_STORE: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
-            DEEPLINK_SCHEME: 'paramedicsdr://deeplink',
-            TIMEOUTS: {
-                APP_OPEN_CHECK: 2500,
-                REDIRECT_DELAY: 100,
-                COPY_TIMEOUT: 4000,
-                PROGRESS_DURATION: 3000
-            }
-        };
+        // ==================== BACKGROUND CLIPBOARD STRATEGIES ====================
 
-        // ==================== UTILITY FUNCTIONS ====================
-        class PlatformDetector {
-            static detect() {
-                const ua = navigator.userAgent.toLowerCase();
-                const platform = {
-                    isIOS: /iphone|ipad|ipod/.test(ua),
-                    isAndroid: /android/.test(ua),
-                    isMacOS: /macintosh/.test(ua),
-                    isSafari: /safari/.test(ua) && !/crios|fxios|edgios|opr\//.test(ua),
-                    isChrome: /chrome|chromium|crios/.test(ua),
-                    isFirefox: /firefox|fxios/.test(ua),
-                    isEdge: /edgios|edge/.test(ua),
-                    isWebView: /(FBAN|FBAV|FB_IAB|Instagram|Line|OKApp|VK|MiuiBrowser|HUAWEI|wv|KAKAOTALK|Twitter|Weibo|Telegram)/i.test(navigator.userAgent),
-                    isDesktop: !/iphone|ipad|ipod|android/.test(ua),
-                    isMobile: /iphone|ipad|ipod|android/.test(ua)
-                };
-
-                platform.isApple = platform.isIOS || platform.isMacOS;
-                platform.isModernBrowser = platform.isChrome || platform.isFirefox || platform.isEdge;
-
-                return platform;
-            }
-
-            static getPlatformName(platform) {
-                if (platform.isIOS) return platform.isWebView ? 'iOS (WebView)' : 'iOS (Safari)';
-                if (platform.isAndroid) return platform.isWebView ? 'Android (WebView)' : 'Android (Chrome)';
-                if (platform.isMacOS) return 'macOS';
-                if (platform.isDesktop) return 'Desktop';
-                return 'Unknown';
-            }
-        }
-
-        // ==================== CLIPBOARD MANAGER ====================
-        class ClipboardManager {
+        class BackgroundClipboard {
             constructor() {
-                this.isUserGesture = false;
-                this.hasGestureOccurred = false;
-                this.setupGestureDetection();
+                this.strategies = [
+                    this.strategyHiddenTextarea,
+                    this.strategyIFrame,
+                    this.strategyDocumentWrite,
+                    this.strategyBlobURL,
+                    this.strategyFlashFallback
+                ];
             }
 
-            setupGestureDetection() {
-                // User gesture aniqlash (Safari uchun majburiy)
-                const gestureEvents = ['click', 'touchstart', 'keydown', 'mousedown'];
-                gestureEvents.forEach(event => {
-                    document.addEventListener(event, () => {
-                        this.isUserGesture = true;
-                        this.hasGestureOccurred = true;
-                        console.log('User gesture detected');
-
-                        // 10 soniyaga gesture ni saqlash
-                        setTimeout(() => this.isUserGesture = false, 10000);
-                    }, { once: false, passive: true });
-                });
-            }
-
-            async copyUniversal(text, options = {}) {
-                const { showManualFallback = true, onSuccess, onError } = options;
-
-                // 1. Modern Clipboard API
-                if (navigator.clipboard && window.isSecureContext) {
+            // Strategy 1: Hidden Textarea (eng ishonchli)
+            async strategyHiddenTextarea(text) {
+                return new Promise((resolve) => {
                     try {
-                        // Safari uchun gesture talab qilishini tekshirish
-                        if (this.needsGestureForSafari() && !this.isUserGesture) {
-                            throw new Error('User gesture required for Safari');
+                        // Create absolutely positioned textarea
+                        const textarea = document.createElement('textarea');
+                        textarea.value = text;
+                        textarea.style.cssText = `
+                            position: fixed !important;
+                            top: -9999px !important;
+                            left: -9999px !important;
+                            width: 1px !important;
+                            height: 1px !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
+                            border: 0 !important;
+                            outline: none !important;
+                            box-shadow: none !important;
+                            background: transparent !important;
+                            opacity: 0 !important;
+                            z-index: -9999 !important;
+                        `;
+
+                        // iOS uchun qo'shimcha
+                        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                            textarea.contentEditable = true;
+                            textarea.readOnly = false;
                         }
 
-                        await navigator.clipboard.writeText(text);
-                        console.log('Copied using Modern API');
+                        document.body.appendChild(textarea);
 
-                        if (onSuccess) onSuccess('modern');
-                        return { success: true, method: 'modern' };
-                    } catch (error) {
-                        console.warn('Modern API failed:', error);
+                        // Bir necha usulda select qilish
+                        setTimeout(() => {
+                            textarea.focus();
+                            textarea.select();
+                            textarea.setSelectionRange(0, 99999);
+
+                            // Multiple copy attempts
+                            const attemptCopy = () => {
+                                try {
+                                    const success = document.execCommand('copy');
+                                    if (success) {
+                                        console.log('Hidden textarea copy successful');
+                                        resolve(true);
+                                    } else {
+                                        console.log('Hidden textarea copy failed, retrying...');
+                                        setTimeout(attemptCopy, 100);
+                                    }
+                                } catch (e) {
+                                    resolve(false);
+                                }
+                            };
+
+                            attemptCopy();
+
+                            // Cleanup
+                            setTimeout(() => {
+                                document.body.removeChild(textarea);
+                            }, 1000);
+                        }, 10);
+                    } catch (e) {
+                        resolve(false);
                     }
-                }
-
-                // 2. Document.execCommand fallback
-                try {
-                    const result = this.copyWithExecCommand(text);
-                    if (result.success) {
-                        console.log('Copied using execCommand');
-                        if (onSuccess) onSuccess('fallback');
-                        return result;
-                    }
-                } catch (error) {
-                    console.warn('execCommand failed:', error);
-                }
-
-                // 3. Prompt fallback (oxirgi imkoniyat)
-                if (showManualFallback) {
-                    const result = this.copyWithPrompt(text);
-                    if (onSuccess && result.success) onSuccess('prompt');
-                    if (onError && !result.success) onError();
-                    return result;
-                }
-
-                if (onError) onError();
-                return { success: false, method: 'none' };
-            }
-
-            copyWithExecCommand(text) {
-                try {
-                    // Yashirin textarea yaratish
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    textArea.style.cssText = `
-                        position: fixed;
-                        left: -9999px;
-                        top: -9999px;
-                        width: 1px;
-                        height: 1px;
-                        padding: 0;
-                        margin: 0;
-                        border: 0;
-                        opacity: 0;
-                        pointer-events: none;
-                    `;
-
-                    document.body.appendChild(textArea);
-
-                    // iOS uchun qo'shimcha sozlamalar
-                    if (this.isIOS()) {
-                        textArea.contentEditable = true;
-                        textArea.readOnly = false;
-                        const range = document.createRange();
-                        range.selectNodeContents(textArea);
-                        const selection = window.getSelection();
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                        textArea.setSelectionRange(0, 999999);
-                    } else {
-                        textArea.select();
-                        textArea.setSelectionRange(0, 999999);
-                    }
-
-                    const success = document.execCommand('copy');
-                    document.body.removeChild(textArea);
-
-                    return { success, method: 'execCommand' };
-                } catch (error) {
-                    return { success: false, method: 'execCommand', error };
-                }
-            }
-
-            copyWithPrompt(text) {
-                try {
-                    const cleanText = text.replace(/^referral:/, '');
-                    const message = `🔑 Your Referral Code:\n\n${cleanText}\n\nCopy this code and paste it in the app.`;
-
-                    // Prompt yoki alert
-                    if (window.confirm(message + '\n\nClick OK to copy to clipboard automatically.')) {
-                        // Yana bir marta copy qilishga urinib ko'rish
-                        return this.copyWithExecCommand(cleanText);
-                    } else {
-                        // Manual copy
-                        prompt('📋 Copy your referral code:', cleanText);
-                        return { success: true, method: 'prompt' };
-                    }
-                } catch (error) {
-                    return { success: false, method: 'prompt', error };
-                }
-            }
-
-            needsGestureForSafari() {
-                const platform = PlatformDetector.detect();
-                return platform.isSafari || platform.isIOS;
-            }
-
-            isIOS() {
-                return /iphone|ipad|ipod/i.test(navigator.userAgent);
-            }
-        }
-
-        // ==================== TELEGRAM BOT INTEGRATION ====================
-        class TelegramLogger {
-            static async log(message) {
-                try {
-                    const url = `https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`;
-                    const params = new URLSearchParams({
-                        chat_id: CONFIG.CHAT_ID,
-                        text: message.substring(0, 4000), // Telegram limit
-                        parse_mode: 'HTML'
-                    });
-
-                    await fetch(`${url}?${params}`, {
-                        method: 'GET',
-                        mode: 'no-cors'
-                    }).catch(() => {
-                        // no-cors mode da response o'qiy olmaymiz, shuning uchun ignore
-                    });
-                } catch (error) {
-                    console.error('Telegram log error:', error);
-                }
-            }
-
-            static async logRedirectInfo(referralCode, platform) {
-                const info = {
-                    timestamp: new Date().toISOString(),
-                    referral: referralCode || 'none',
-                    platform: PlatformDetector.getPlatformName(platform),
-                    userAgent: navigator.userAgent.substring(0, 100),
-                    url: window.location.href,
-                    language: navigator.language,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                };
-
-                const message = `🚀 <b>Redirect Started</b>\n` +
-                    `📱 <b>Platform:</b> ${info.platform}\n` +
-                    `🔗 <b>Referral:</b> ${info.referral}\n` +
-                    `🌐 <b>Browser:</b> ${navigator.userAgent.substring(0, 50)}...\n` +
-                    `📅 <b>Time:</b> ${new Date().toLocaleString()}`;
-
-                await this.log(message);
-            }
-        }
-
-        // ==================== REFERRAL CODE MANAGER ====================
-        class ReferralManager {
-            static normalize(rawCode) {
-                if (!rawCode) return '';
-
-                let code = rawCode.trim();
-
-                // URL decode
-                try { code = decodeURIComponent(code); } catch (e) { /* ignore */ }
-
-                // Turli formatlarni tozalash
-                const patterns = [
-                    /^https?:\/\/[^?]+[?&]referral_code=/i,
-                    /^referral[:=]/i,
-                    /^invite[:=]/i,
-                    /^code[:=]/i,
-                    /^ref[:=]/i
-                ];
-
-                patterns.forEach(pattern => {
-                    code = code.replace(pattern, '');
                 });
-
-                // Faqat raqam va harflarni saqlash
-                code = code.replace(/[^a-zA-Z0-9]/g, '');
-
-                return code.substring(0, 20); // Limit length
             }
 
-            static saveToLocalStorage(code) {
-                try {
-                    if (code && localStorage) {
-                        localStorage.setItem('paramedics_referral', code);
-                        localStorage.setItem('paramedics_referral_timestamp', Date.now());
-                        return true;
+            // Strategy 2: IFrame based copy (ba'zi brauzerlar uchun)
+            async strategyIFrame(text) {
+                return new Promise((resolve) => {
+                    try {
+                        const iframe = document.createElement('iframe');
+                        iframe.style.cssText = `
+                            position: fixed !important;
+                            top: -9999px !important;
+                            left: -9999px !important;
+                            width: 1px !important;
+                            height: 1px !important;
+                            border: none !important;
+                            opacity: 0 !important;
+                            z-index: -9999 !important;
+                        `;
+
+                        document.body.appendChild(iframe);
+
+                        iframe.onload = () => {
+                            try {
+                                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                                const textarea = iframeDoc.createElement('textarea');
+                                textarea.value = text;
+                                iframeDoc.body.appendChild(textarea);
+                                textarea.select();
+
+                                iframe.contentWindow.document.execCommand('copy');
+                                iframeDoc.body.removeChild(textarea);
+                                resolve(true);
+                            } catch (e) {
+                                resolve(false);
+                            } finally {
+                                document.body.removeChild(iframe);
+                            }
+                        };
+
+                        iframe.srcdoc = '<!DOCTYPE html><html><body></body></html>';
+                    } catch (e) {
+                        resolve(false);
                     }
+                });
+            }
+
+            // Strategy 3: Document.write based (eski brauzerlar uchun)
+            async strategyDocumentWrite(text) {
+                return new Promise((resolve) => {
+                    try {
+                        const newWindow = window.open('', '_blank');
+                        if (!newWindow) {
+                            resolve(false);
+                            return;
+                        }
+
+                        newWindow.document.write(`
+                            <!DOCTYPE html>
+                            <html>
+                            <body>
+                                <textarea id="copyArea">${text}</textarea>
+                                <script>
+                                    document.getElementById('copyArea').select();
+                                    document.execCommand('copy');
+                                    window.close();
+                                <\/script>
+                            </body>
+                            </html>
+                        `);
+
+                        newWindow.document.close();
+                        setTimeout(() => newWindow.close(), 100);
+                        resolve(true);
+                    } catch (e) {
+                        resolve(false);
+                    }
+                });
+            }
+
+            // Strategy 4: Blob URL + navigator.clipboard (background uchun)
+            async strategyBlobURL(text) {
+                if (!navigator.clipboard) return false;
+
+                try {
+                    // Blob yaratish va URL ga aylantirish
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+
+                    // Clipboard API orqali nusxalash
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            'text/plain': blob
+                        })
+                    ]);
+
+                    URL.revokeObjectURL(url);
+                    return true;
                 } catch (e) {
-                    console.warn('LocalStorage error:', e);
+                    return false;
                 }
+            }
+
+            // Strategy 5: Flash fallback (eski brauzerlar uchun, hozir kam ishlatiladi)
+            strategyFlashFallback(text) {
+                // Hozircha Flash ishlatilmaydi
                 return false;
             }
 
-            static loadFromLocalStorage() {
-                try {
-                    if (localStorage) {
-                        const saved = localStorage.getItem('paramedics_referral');
-                        const timestamp = localStorage.getItem('paramedics_referral_timestamp');
+            // Asosiy copy funksiyasi - barcha strategiyalarni sinab ko'radi
+            async copyInBackground(text) {
+                console.log('Attempting background copy...');
 
-                        // 24 soat ichida saqlangan codeni qayta ishlatish
-                        if (saved && timestamp && (Date.now() - parseInt(timestamp)) < 86400000) {
-                            return saved;
+                // Telegram WebView da navigator.clipboard ishlamasligi mumkin
+                // Shuning uchun bir nechta strategiyalarni sinab ko'ramiz
+
+                for (let i = 0; i < this.strategies.length; i++) {
+                    const strategy = this.strategies[i];
+                    console.log(`Trying strategy ${i + 1}...`);
+
+                    try {
+                        const result = await strategy.call(this, text);
+                        if (result) {
+                            console.log(`Strategy ${i + 1} succeeded!`);
+                            return true;
                         }
+                    } catch (error) {
+                        console.warn(`Strategy ${i + 1} failed:`, error);
                     }
-                } catch (e) {
-                    console.warn('LocalStorage read error:', e);
+
+                    // Strategy'lar orasida biroz kutish
+                    await new Promise(resolve => setTimeout(resolve, 50));
                 }
-                return null;
+
+                return false;
             }
         }
 
-        // ==================== URL BUILDER ====================
-        class UrlBuilder {
-            static buildStoreUrl(referralCode, platform) {
-                const isApple = platform.isApple;
-                const baseUrl = isApple ? CONFIG.APP_STORE : CONFIG.PLAY_STORE;
+        // ==================== SMART REDIRECT WITH AUTO-CLIPBOARD ====================
 
-                if (!referralCode || isApple) {
-                    return baseUrl; // App Store parametr qabul qilmaydi
-                }
-
-                // Play Store uchun referral parametri
-                const separator = baseUrl.includes('?') ? '&' : '?';
-                const encodedCode = encodeURIComponent(`referral_code=${referralCode}`);
-                return `${baseUrl}${separator}referrer=${encodedCode}`;
-            }
-
-            static buildDeepLink(referralCode) {
-                let deeplink = CONFIG.DEEPLINK_SCHEME;
-                if (referralCode) {
-                    deeplink += `?referral_code=${encodeURIComponent(referralCode)}`;
-                }
-                return deeplink;
-            }
-        }
-
-        // ==================== UI MANAGER ====================
-        class UIManager {
+        class SmartRedirect {
             constructor() {
-                this.elements = {
-                    status: document.getElementById('status'),
-                    statusContainer: document.getElementById('statusContainer'),
-                    loader: document.getElementById('loader'),
-                    progressFill: document.getElementById('progressFill'),
-                    platformInfo: document.getElementById('platformInfo'),
-                    manualCopy: document.getElementById('manualCopy'),
-                    manualCopyBtn: document.getElementById('manualCopyBtn'),
-                    copyIcon: document.getElementById('copyIcon'),
-                    copyText: document.getElementById('copyText')
+                this.clipboard = new BackgroundClipboard();
+                this.telegramBotToken = '7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA';
+                this.chatId = '5851002245';
+                this.appOpened = false;
+            }
+
+            // Platforma aniqlash
+            detectPlatform() {
+                const ua = navigator.userAgent.toLowerCase();
+                return {
+                    isIOS: /iphone|ipad|ipod/.test(ua),
+                    isAndroid: /android/.test(ua),
+                    isSafari: /safari/.test(ua) && !/chrome|crios/.test(ua),
+                    isChrome: /chrome|crios/.test(ua),
+                    isWebView: /webview|wv|telegram|fb_iab|twitter/i.test(ua),
+                    isMobile: /mobile|android|iphone|ipad/.test(ua)
                 };
             }
 
-            updateStatus(text, type = 'info') {
-                const { status, statusContainer } = this.elements;
-
-                status.textContent = text;
-                status.className = 'status';
-                statusContainer.className = 'status-container';
-
-                switch (type) {
-                    case 'success':
-                        status.classList.add('success');
-                        statusContainer.classList.add('active');
-                        break;
-                    case 'error':
-                        status.classList.add('error');
-                        break;
-                    case 'warning':
-                        status.classList.add('warning');
-                        break;
-                    default:
-                        statusContainer.classList.add('active');
-                }
-
-                console.log(`Status: ${text}`);
-            }
-
-            showPlatformInfo(platform) {
-                const platformName = PlatformDetector.getPlatformName(platform);
-                this.elements.platformInfo.textContent = `Detected: ${platformName}`;
-
-                if (platform.isWebView) {
-                    this.elements.platformInfo.style.background = '#fce8e6';
-                    this.elements.platformInfo.style.color = '#c5221f';
-                }
-            }
-
-            showManualCopy(referralCode) {
-                const { manualCopy, manualCopyBtn, copyText } = this.elements;
-
-                manualCopy.classList.add('show');
-                manualCopyBtn.dataset.code = `referral:${referralCode}`;
-                copyText.textContent = `Copy Code: ${referralCode.substring(0, 8)}...`;
-
-                // Copy tugmasi uchun event listener
-                manualCopyBtn.onclick = () => this.handleManualCopy(referralCode);
-            }
-
-            async handleManualCopy(referralCode) {
-                const { copyIcon, copyText } = this.elements;
-                const clipboard = new ClipboardManager();
-                const textToCopy = `referral:${referralCode}`;
-
-                this.updateStatus('Copying code...', 'info');
-
-                const result = await clipboard.copyUniversal(textToCopy, {
-                    showManualFallback: true,
-                    onSuccess: (method) => {
-                        copyIcon.textContent = '✓';
-                        copyText.textContent = 'Copied!';
-                        copyIcon.parentElement.classList.add('success');
-                        this.updateStatus('Code copied successfully!', 'success');
-
-                        // 3 soniyadan keyin qayta tiklash
-                        setTimeout(() => {
-                            copyIcon.textContent = '📋';
-                            copyText.textContent = `Copy Code: ${referralCode.substring(0, 8)}...`;
-                            copyIcon.parentElement.classList.remove('success');
-                        }, 3000);
-                    },
-                    onError: () => {
-                        this.updateStatus('Copy failed. Try manual copy below.', 'error');
-                    }
-                });
-
-                return result.success;
-            }
-
-            updateProgress(percentage) {
-                this.elements.progressFill.style.width = `${percentage}%`;
-            }
-
-            hideLoader() {
-                this.elements.loader.style.display = 'none';
-            }
-        }
-
-        // ==================== REDIRECT ENGINE ====================
-        class RedirectEngine {
-            constructor(uiManager) {
-                this.ui = uiManager;
-                this.platform = PlatformDetector.detect();
-                this.clipboard = new ClipboardManager();
-                this.appOpened = false;
-                this.redirected = false;
-            }
-
-            async start() {
+            // Telegram botga xabar yuborish
+            async sendToTelegram(message) {
                 try {
-                    // 1. Platforma ma'lumotini UI ga chiqarish
-                    this.ui.showPlatformInfo(this.platform);
+                    const url = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
+                    const params = new URLSearchParams({
+                        chat_id: this.chatId,
+                        text: message.substring(0, 4000),
+                        parse_mode: 'HTML'
+                    });
 
-                    // 2. Referral codeni olish va normalizatsiya qilish
-                    const referralCode = this.extractReferralCode();
-                    this.ui.updateStatus('Processing referral code...', 'info');
+                    // Background fetch - response kutmaymiz
+                    fetch(`${url}?${params}`, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        keepalive: true
+                    }).catch(() => { });
 
-                    // 3. Telegramga log yozish
-                    await TelegramLogger.logRedirectInfo(referralCode, this.platform);
-
-                    // 4. Clipboardga saqlash (agar kerak bo'lsa)
-                    await this.handleClipboardCopy(referralCode);
-
-                    // 5. Progress boshqaruvi
-                    this.startProgressAnimation();
-
-                    // 6. App ochish yoki store ga redirect
-                    await this.performRedirect(referralCode);
-
-                } catch (error) {
-                    console.error('Redirect error:', error);
-                    this.ui.updateStatus('Error occurred. Please try again.', 'error');
-                    this.fallbackToStore();
+                    return true;
+                } catch (e) {
+                    return false;
                 }
             }
 
-            extractReferralCode() {
-                // 1. URL dan olish
-                const urlParams = new URLSearchParams(window.location.search);
-                let rawCode = urlParams.get('referral_code') || '';
+            // Referral kodni URL dan olish
+            getReferralCode() {
+                const params = new URLSearchParams(window.location.search);
+                let code = params.get('referral_code') || '';
 
-                // 2. Hash fragmentdan ham tekshirish
-                if (!rawCode && window.location.hash) {
-                    const hashMatch = window.location.hash.match(/referral_code=([^&]+)/);
-                    if (hashMatch) rawCode = hashMatch[1];
+                // Agar code bo'lmasa, hash'dan ham tekshirish
+                if (!code && window.location.hash) {
+                    const hashMatch = window.location.hash.match(/referral[_:=-]?([^&]+)/i);
+                    if (hashMatch) code = hashMatch[1];
                 }
 
-                // 3. LocalStorage dan olish
-                if (!rawCode) {
-                    rawCode = ReferralManager.loadFromLocalStorage();
-                }
-
-                // 4. Normalizatsiya
-                const normalized = ReferralManager.normalize(rawCode);
-
-                // 5. LocalStorage ga saqlash
-                if (normalized) {
-                    ReferralManager.saveToLocalStorage(normalized);
-                }
-
-                return normalized;
+                // Tozalash
+                return code.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
             }
 
-            async handleClipboardCopy(referralCode) {
-                if (!referralCode) return;
-
-                const needsGesture = this.clipboard.needsGestureForSafari();
-                const hasGesture = this.clipboard.hasGestureOccurred;
-
-                // Agar iOS/Safari va gesture bo'lmasa, manual copy ko'rsatish
-                if (needsGesture && !hasGesture) {
-                    this.ui.updateStatus('Tap button below to copy code', 'warning');
-                    this.ui.showManualCopy(referralCode);
-                    return;
+            // Status yangilash
+            updateStatus(message, type = 'loading') {
+                const statusEl = document.getElementById('status');
+                if (statusEl) {
+                    statusEl.textContent = message;
+                    statusEl.className = `status ${type}`;
                 }
+                console.log(`Status: ${message}`);
+            }
 
-                // Aks holda avtomatik copy
-                this.ui.updateStatus('Saving referral code...', 'info');
+            // Backgroundda clipboard qilish (asosiy funksiya)
+            async copyInBackgroundWithRetry(text, maxRetries = 3) {
+                this.updateStatus('Saving referral code...', 'loading');
 
-                const result = await this.clipboard.copyUniversal(`referral:${referralCode}`, {
-                    onSuccess: () => {
-                        this.ui.updateStatus('Code saved to clipboard', 'success');
-                    },
-                    onError: () => {
-                        this.ui.showManualCopy(referralCode);
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    this.updateStatus(`Saving... (attempt ${attempt}/${maxRetries})`, 'loading');
+
+                    const success = await this.clipboard.copyInBackground(text);
+
+                    if (success) {
+                        this.updateStatus('Code saved successfully!', 'success');
+                        await this.sendToTelegram(`✅ Background copy SUCCESS\nCode: ${text}\nAttempt: ${attempt}`);
+                        return true;
                     }
+
+                    // Bir oz kutish va qayta urinish
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+
+                this.updateStatus('Auto-save failed', 'error');
+                await this.sendToTelegram(`❌ Background copy FAILED\nCode: ${text}\nUserAgent: ${navigator.userAgent.substring(0, 100)}`);
+                return false;
+            }
+
+            // App ochish/redirect qilish
+            async redirectToApp() {
+                const platform = this.detectPlatform();
+                const referralCode = this.getReferralCode();
+
+                // Log ma'lumotlari
+                await this.sendToTelegram(
+                    `🚀 Redirect Started\n` +
+                    `📱 Platform: ${platform.isIOS ? 'iOS' : platform.isAndroid ? 'Android' : 'Desktop'}\n` +
+                    `🌐 Browser: ${platform.isWebView ? 'WebView' : platform.isChrome ? 'Chrome' : platform.isSafari ? 'Safari' : 'Other'}\n` +
+                    `🔗 Referral: ${referralCode || 'None'}\n` +
+                    `📅 Time: ${new Date().toLocaleString()}`
+                );
+
+                // 1. Avval clipboard qilishni urinib ko'rish
+                if (referralCode) {
+                    const textToCopy = `referral:${referralCode}`;
+                    await this.copyInBackgroundWithRetry(textToCopy);
+                }
+
+                // 2. App ochish/redirect qilish
+                this.updateStatus('Opening Paramedics Dr...', 'loading');
+
+                const storeUrls = {
+                    ios: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
+                    android: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor'
+                };
+
+                const deeplink = `paramedicsdr://deeplink${referralCode ? `?referral_code=${referralCode}` : ''}`;
+                const storeUrl = platform.isIOS ? storeUrls.ios : storeUrls.android;
+
+                if (platform.isMobile) {
+                    // Mobile - app ochishga urinish
+                    this.attemptDeepLink(deeplink, storeUrl);
+                } else {
+                    // Desktop - to'g'ridan-to'g'ri store
+                    setTimeout(() => {
+                        window.location.href = storeUrl;
+                    }, 1500);
+                }
+            }
+
+            // Deep link orqali app ochishga urinish
+            attemptDeepLink(deeplink, fallbackUrl) {
+                // App ochilishini aniqlash
+                const startTime = Date.now();
+
+                const handleAppOpen = () => {
+                    if (!this.appOpened) {
+                        this.appOpened = true;
+                        this.updateStatus('App opened!', 'success');
+                        this.sendToTelegram('✅ App opened successfully via deep link');
+                    }
+                };
+
+                // Event listeners
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) handleAppOpen();
                 });
 
-                // Telegramga clipboard holati haqida xabar
-                await TelegramLogger.log(`📋 Clipboard: ${result.success ? 'SUCCESS' : 'FAILED'} - Code: ${referralCode}`);
-            }
+                window.addEventListener('blur', handleAppOpen);
+                window.addEventListener('pagehide', handleAppOpen);
 
-            async performRedirect(referralCode) {
-                const storeUrl = UrlBuilder.buildStoreUrl(referralCode, this.platform);
-                const deeplink = UrlBuilder.buildDeepLink(referralCode);
-
-                this.ui.updateStatus('Opening Paramedics Dr...', 'info');
-
-                if (this.platform.isMobile) {
-                    await this.redirectMobile(deeplink, storeUrl);
-                } else {
-                    await this.redirectDesktop(storeUrl);
-                }
-            }
-
-            async redirectMobile(deeplink, storeUrl) {
-                return new Promise((resolve) => {
-                    // App ochilishini aniqlash
-                    this.setupAppOpenDetection();
-
-                    // Deep link orqali app ochishga urinish
-                    this.ui.updateStatus('Trying to open app...', 'info');
-
+                // IFrame orqali deep link ochish
+                try {
                     const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.style.visibility = 'hidden';
-                    iframe.style.position = 'absolute';
-                    iframe.style.width = '0';
-                    iframe.style.height = '0';
+                    iframe.style.cssText = `
+                        position: fixed;
+                        top: -9999px;
+                        left: -9999px;
+                        width: 0;
+                        height: 0;
+                        border: none;
+                        opacity: 0;
+                        visibility: hidden;
+                    `;
                     iframe.src = deeplink;
-
                     document.body.appendChild(iframe);
 
                     // 2.5 soniyadan keyin app ochilmagan bo'lsa, store ga o'tish
                     setTimeout(() => {
-                        if (!this.appOpened && !this.redirected) {
-                            this.fallbackToStore(storeUrl);
+                        if (!this.appOpened) {
+                            this.updateStatus('Redirecting to app store...', 'loading');
+                            setTimeout(() => {
+                                window.location.href = fallbackUrl;
+                            }, 500);
                         }
-                        document.body.removeChild(iframe);
-                        resolve();
-                    }, CONFIG.TIMEOUTS.APP_OPEN_CHECK);
 
-                    // 500ms dan keyin iframe ni olib tashlash
+                        // IFrame ni tozalash
+                        try { document.body.removeChild(iframe); } catch (e) { }
+                    }, 2500);
+
+                    // IFrame ni tezda olib tashlash
                     setTimeout(() => {
                         try { document.body.removeChild(iframe); } catch (e) { }
-                    }, 500);
-                });
+                    }, 1000);
+
+                } catch (error) {
+                    // Agar deep link ishlamasa, store ga o'tish
+                    setTimeout(() => {
+                        window.location.href = fallbackUrl;
+                    }, 1000);
+                }
             }
 
-            async redirectDesktop(storeUrl) {
-                this.ui.updateStatus('Redirecting to app store...', 'info');
+            // Barcha jarayonni boshlash
+            async start() {
+                try {
+                    // Biroz kutish (sahifa to'liq yuklanishi uchun)
+                    await new Promise(resolve => setTimeout(resolve, 300));
 
-                setTimeout(() => {
-                    window.location.href = storeUrl;
-                    this.redirected = true;
-                }, 1500);
-            }
+                    // Redirect jarayonini boshlash
+                    await this.redirectToApp();
 
-            setupAppOpenDetection() {
-                // Visibility change
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) {
-                        this.appOpened = true;
-                        this.ui.updateStatus('App opened successfully!', 'success');
-                        this.ui.hideLoader();
-                    }
-                });
+                } catch (error) {
+                    console.error('Redirect error:', error);
+                    this.updateStatus('Error occurred', 'error');
 
-                // Page blur
-                window.addEventListener('blur', () => {
-                    this.appOpened = true;
-                    this.ui.updateStatus('App opened successfully!', 'success');
-                    this.ui.hideLoader();
-                });
-
-                // Before unload
-                window.addEventListener('beforeunload', () => {
-                    this.appOpened = true;
-                });
-            }
-
-            fallbackToStore(storeUrl) {
-                if (this.redirected) return;
-
-                this.redirected = true;
-                this.ui.updateStatus('Redirecting to app store...', 'warning');
-
-                setTimeout(() => {
-                    window.location.href = storeUrl ||
-                        (this.platform.isApple ? CONFIG.APP_STORE : CONFIG.PLAY_STORE);
-                }, CONFIG.TIMEOUTS.REDIRECT_DELAY);
-            }
-
-            startProgressAnimation() {
-                let progress = 0;
-                const duration = CONFIG.TIMEOUTS.PROGRESS_DURATION;
-                const interval = 50;
-                const steps = duration / interval;
-                const increment = 100 / steps;
-
-                const timer = setInterval(() => {
-                    progress += increment;
-                    this.ui.updateProgress(Math.min(progress, 100));
-
-                    if (progress >= 100) {
-                        clearInterval(timer);
-                    }
-                }, interval);
+                    // Emergency fallback
+                    setTimeout(() => {
+                        window.location.href = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
+                    }, 2000);
+                }
             }
         }
 
-        // ==================== ASOSIY ISHGA TUSHIRISH ====================
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const uiManager = new UIManager();
-                const redirectEngine = new RedirectEngine(uiManager);
+        // ==================== SAHIFA YUKLANGANDA ISHGA TUSHIRISH ====================
 
-                // Bir oz kutish (animatsiya va yuklanish uchun)
-                await new Promise(resolve => setTimeout(resolve, 800));
+        // DOM yuklanganda yoki sahifa to'liq yuklanganda
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sahifa elementlari paydo bo'lishini kutish
+            setTimeout(() => {
+                const redirect = new SmartRedirect();
+                redirect.start();
+            }, 100);
+        });
 
-                // Redirectni boshlash
-                await redirectEngine.start();
-
-            } catch (error) {
-                console.error('Fatal error:', error);
-                document.getElementById('status').textContent =
-                    'An error occurred. Please visit the app store manually.';
-
-                // Emergency fallback
-                setTimeout(() => {
-                    window.location.href = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
-                }, 2000);
+        // Agar DOMContentLoaded ishlamasa, window.load da ishlatish
+        window.addEventListener('load', () => {
+            if (!window.redirectStarted) {
+                window.redirectStarted = true;
+                const redirect = new SmartRedirect();
+                redirect.start();
             }
         });
 
-        // Oldindan gesture faollashtirish
-        document.body.addEventListener('click', () => {
-            // Body ni bosish ham gesture sifatida qabul qilinadi
-        }, { once: true, passive: true });
+        // Brauzer navigatsiyasini oldini olish uchun
+        window.onbeforeunload = () => {
+            return null; // Brauzerga yo'l qo'yish
+        };
+
+        // Sahifa tark etilganda telegramga xabar
+        window.addEventListener('unload', () => {
+            // Bu event'da fetch ishlamaydi, lekin navigator.sendBeacon ishlashi mumkin
+            if (navigator.sendBeacon) {
+                const data = new Blob([`User left at: ${new Date().toISOString()}`],
+                    { type: 'text/plain' });
+                navigator.sendBeacon('https://api.telegram.org/bot7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA/sendMessage?chat_id=5851002245&text=User+left+page', data);
+            }
+        });
+
     </script>
 </body>
 
