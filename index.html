@@ -225,6 +225,7 @@
             const pEl = document.querySelector('p');
             statusEl.textContent = 'Opening app...';
 
+            // URL parametrlarini o'qish (referral_code, app, src)
             const urlParams = new URLSearchParams(window.location.search);
             const rawReferral = urlParams.get('referral_code') || '';
             referralCode = normalizeReferralCode(rawReferral);
@@ -262,8 +263,7 @@
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
                         if (isIOS) {
-                            // iOS uchun UI o'zgartirish (lekin location.href o'zgargan bo'lsa, bu kod ishlamasligi mumkin – fallback uchun boshqa yondashuv kerak)
-                            // Eslatma: location.href o'zgartirilgach, keyingi kod ishlamaydi, shuning uchun bu timeout ni oldinga surish lozim
+                            // iOS uchun UI o'zgartirish
                             pEl.textContent = 'Ilovani topa olmadik.';
                             statusEl.textContent = 'App Store ga o\'tishni xohlaysizmi?';
                             loaderEl.style.display = 'none';
