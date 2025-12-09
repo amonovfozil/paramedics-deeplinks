@@ -110,7 +110,6 @@
         let referralCode = ''; // Global saqlash uchun
         let storeUrl = '';
         let isIOS = false;
-        let pageUnloaded = false; // Yangi: sahifa haqiqatan yopilganligini tekshirish uchun
 
         function getPlatform() {
             const ua = navigator.userAgent.toLowerCase();
@@ -174,39 +173,14 @@
 
         function setupAppOpenDetection(callback) {
             let appOpened = false;
-            pageUnloaded = false;
-
-            const handleUnload = () => {
-                pageUnloaded = true;
-                if (!appOpened) {
-                    appOpened = true;
-                    callback();
-                }
-            };
-
-            // Haqiqiy sahifa yopilishini tekshirish uchun
-            window.addEventListener('pagehide', handleUnload);
-            window.addEventListener('beforeunload', handleUnload);
-
-            // Eski detection'larni saqlab, lekin ularni faqat yordamchi sifatida ishlatamiz (false positive oldini olish uchun)
-            const clearAndMark = () => {
-                if (!appOpened && pageUnloaded) { // Faqat sahifa yopilganda
-                    appOpened = true;
-                    callback();
-                }
-            };
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden && pageUnloaded) clearAndMark();
-            });
-            window.addEventListener('blur', () => {
-                if (pageUnloaded) clearAndMark();
-            });
-
+            const clearAndMark = () => { if (!appOpened) { appOpened = true; callback(); } };
+            document.addEventListener('visibilitychange', () => document.hidden && clearAndMark());
+            window.addEventListener('blur', clearAndMark);
+            window.addEventListener('pagehide', clearAndMark);
             return () => {
-                window.removeEventListener('pagehide', handleUnload);
-                window.removeEventListener('beforeunload', handleUnload);
                 document.removeEventListener('visibilitychange', arguments.callee);
                 window.removeEventListener('blur', arguments.callee);
+                window.removeEventListener('pagehide', arguments.callee);
             };
         }
 
@@ -270,26 +244,31 @@
             let redirectTimeout;
             const appOpenedCallback = () => {
                 clearTimeout(redirectTimeout);
-                if (pageUnloaded) { // Faqat haqiqiy yopilishda
-                    statusEl.textContent = 'App opened successfully!';
-                    loaderEl.style.display = 'none';
-                    // App ochilganda sahifani yopishga urinish (allaqachon yopilgan bo'lsa ham)
-                    setTimeout(() => {
-                        window.close();
-                    }, 100);
-                }
+                statusEl.textContent = 'App opened successfully!';
+                loaderEl.style.display = 'none';
+                // App ochilganda sahifani yopishga urinish
+                setTimeout(() => {
+                    window.close();
+                }, 100);
             };
             const cleanup = setupAppOpenDetection(appOpenedCallback);
 
             if (isMobile) {
-                // Deeplink orqali ochishdan oldin yopish uchun: avval deeplink ga o'tkazish
-                statusEl.textContent = 'Trying to open app...';
+                // Deeplink'ni iframe orqali ochish: bu alert popup'ni oldini oladi (app o'rnatilmagan bo'lsa ham)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = urls.deeplink;
+                document.body.appendChild(iframe);
 
-                // Timeout ichida deeplink'ga o'tkazish va tekshirish
+                statusEl.textContent = 'Trying to open app...';
+                setTimeout(() => {
+                    document.body.removeChild(iframe); // Iframe'ni olib tashlash
+                }, 1000);
+
                 redirectTimeout = setTimeout(() => {
-                    if (!pageUnloaded) { // Agar sahifa yopilmagan bo'lsa (app ochilmagan)
+                    if (statusEl.textContent !== 'App opened successfully!') {
                         if (isIOS) {
-                            // iOS uchun UI o'zgartirish: button ko'rsatish
+                            // iOS uchun UI o'zgartirish: button ko'rsatish (alert popup bo'lmasdan)
                             pEl.textContent = 'Ilovani topa olmadik.';
                             statusEl.textContent = 'App Store ga o\'tishni xohlaysizmi?';
                             loaderEl.style.display = 'none';
@@ -303,10 +282,7 @@
                             }, 100);
                         }
                     }
-                }, 3000);  // Timeout'ni oshirdik: 3s, iOS error popup uchun yetarli vaqt
-
-                // Deeplink'ga o'tkazish (app ochilganda sahifa avtomatik yopiladi)
-                window.location.href = urls.deeplink;
+                }, 2500);  // Timeout: app ochilish uchun yetarli vaqt (iframe usuli popup'ni bloklaydi)
             } else {
                 // Desktop uchun
                 setTimeout(() => {
@@ -316,7 +292,7 @@
                 }, 1000);
             }
 
-            setTimeout(cleanup, 5000); // Cleanup'ni uzaytirdik
+            setTimeout(cleanup, 4000);
         }
 
         window.onload = () => setTimeout(startRedirect, 500);
@@ -334,6 +310,7 @@
             <div class="app-store-title">App Store ga o'tish</div>
             <button id="storeButton" onclick="goToStore()">App Store ga o'tish</button>
         </div>
+    </div>
 </body>
 
 </html>
