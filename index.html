@@ -212,14 +212,26 @@
                         statusEl.textContent = 'Redirecting to store...';
 
                         // In-app/webview (Telegram va boshqalar) da yopib tashlab store'ga o'tamiz.
-
-                        try { window.close(); } catch (e) { /* ignore */ }
-                        setTimeout(() => window.location.replace(storeUrl), 100);
-
+                        const stayOnPage = (isSafari || isDesktop) && !isWebView;
+                        if (stayOnPage) {
+                            window.location.href = storeUrl;
+                        } else {
+                            try { window.close(); } catch (e) { /* ignore */ }
+                            setTimeout(() => window.location.replace(storeUrl), 100);
+                        }
                     }
                 }, 2500);
             } else {
-                setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
+                setTimeout(() => {
+                    statusEl.textContent = 'Redirecting to store...';
+                    const stayOnPage = (isSafari || isDesktop) && !isWebView;
+                    if (stayOnPage) {
+                        window.location.href = storeUrl;
+                    } else {
+                        try { window.close(); } catch (e) { /* ignore */ }
+                        setTimeout(() => window.location.replace(storeUrl), 100);
+                    }
+                }, 1000);
             }
 
             setTimeout(cleanup, 3000);
