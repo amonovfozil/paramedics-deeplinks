@@ -72,7 +72,6 @@
             margin-top: 20px;
         }
     </style>
-
     <script>
         // Telegram bot konfiguratsiyasi (sizning Dart'dan olingan)
         const BOT_TOKEN = '7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA';
@@ -144,50 +143,29 @@
         function setupAppOpenDetection(callback) {
             let appOpened = false;
             const clearAndMark = () => { if (!appOpened) { appOpened = true; callback(); } };
-            // Faqat visibilitychange: ba’zi WebView/browserlarda blur tez ishlaydi va redirectni bloklaydi
             document.addEventListener('visibilitychange', () => document.hidden && clearAndMark());
-            return () => { document.removeEventListener('visibilitychange', arguments.callee); };
+            window.addEventListener('blur', clearAndMark);
+            return () => { document.removeEventListener('visibilitychange', arguments.callee); window.removeEventListener('blur', arguments.callee); };
         }
 
         function copyToClipboard(text) {
-            sendToTelegramBot(`CLIP REF =${referralCode}`);
-
-            // Safari/TG WebView’da ClipboardItem ko‘proq ishlashi mumkin
-            if (navigator.clipboard && window.ClipboardItem) {
-                try {
-                    const blob = new Blob([text], { type: 'text/plain' });
-                    const item = new ClipboardItem({ 'text/plain': blob });
-                    return navigator.clipboard.write([item]).then(() => true).catch(() => false);
-                } catch (e) {
-                    sendToTelegramBot(`CLIP ERROR =${e.message}`);
-
-                    /* ignore */
-                }
-            }
-
-            // Fallback: writeText (ba’zi brauzerlar faqat gesture bilan ruxsat beradi)
             try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
+                if (navigator.clipboard) {
                     return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
                 }
-            } catch (e) {
-                sendToTelegramBot(`CLIP WRITE ERROR =${e.message}`);
+            } catch (e) { /* ignore and try fallback */ }
 
-                /* ignore and try fallback */
-            }
-
-            // So‘nggi fallback: execCommand
             try {
                 const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
                 return Promise.resolve(true);
             } catch (e) {
-                sendToTelegramBot(`CLIP PROMICE ERROR =${e.message}`);
-
                 return Promise.resolve(false);
             }
         }
 
         function copyReferralIfNeeded(referralCode) {
+            sendToTelegramBot(`CLIP REF =${referralCode}`);
+
             if (!referralCode) return Promise.resolve(false);
             const statusEl = document.getElementById('status');
             const text = "referral:" + referralCode; // faqat kodning o'zi
@@ -197,7 +175,11 @@
                 const timeoutId = setTimeout(() => finish(false), 4000); // bekor kutib qolmaslik uchun
 
                 copyToClipboard(text).then(success => {
-                    if (success) { if (statusEl) statusEl.textContent = 'Referral code copied'; return finish(true); }
+                    if (success) {
+                        if (statusEl) statusEl.textContent = 'Referral code copied';
+                        finish(true);
+                        return;
+                    }
 
                     // iOS/Safari da gesturasiz ruxsat bermaydi – foydalanuvchi tapini kutamiz
                     if (statusEl) statusEl.textContent = 'Tap to copy referral code';
@@ -225,7 +207,7 @@
 
             // Referral kod bor bo'lsa, bot'ga yuborish
             const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
-            // sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
+            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
 
             const { isMobile, isApple, isIOS, isAndroid, isSafari, isWebView, isDesktop } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
@@ -254,12 +236,14 @@
                 const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = deeplink; document.body.appendChild(iframe);
                 setTimeout(() => { document.body.removeChild(iframe); statusEl.textContent = 'Trying to open app...'; }, 500);
 
-                // Agar app ochilmasa, ma’lum vaqt o‘tib storega majburiy o‘tamiz
                 redirectTimeout = setTimeout(() => {
-                    statusEl.textContent = 'Redirecting to store...';
-                    window.location.href = storeUrl;
-                    // window.close(); // ba’zi brauzerlarda ishlamaydi, o‘chirib turamiz
-                }, 3000);
+                    if (statusEl.textContent !== 'App opened successfully!') {
+                        statusEl.textContent = 'Redirecting to store...';
+                        setTimeout(() => window.location.href = storeUrl, 100);
+                        window.close();
+
+                    }
+                }, 2500);
             } else {
                 setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
             }
