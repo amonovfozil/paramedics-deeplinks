@@ -84,24 +84,13 @@
             const ua = navigator.userAgent.toLowerCase();
             const isIOS = /iphone|ipad|ipod/.test(ua);
             const isAndroid = /android/.test(ua);
-            const isSafari = /safari/.test(ua) && !/crios|fxios|edgios|opr\//.test(ua);
-            const isWebView = /(FBAN|FBAV|FB_IAB|Instagram|Line|OKApp|VK|MiuiBrowser|HUAWEI|wv|KAKAOTALK|Twitter|Weibo|Telegram)/i.test(navigator.userAgent);
-            const isDesktop = !isIOS && !isAndroid;
-            return {
-                isIOS,
-                isAndroid,
-                isMobile: isIOS || isAndroid,
-                isApple: isIOS || /macintosh/.test(ua) && !isIOS,
-                isSafari,
-                isWebView,
-                isDesktop
-            };
+            return { isIOS, isAndroid, isMobile: isIOS || isAndroid, isApple: isIOS || /macintosh/.test(ua) && !isIOS };
         }
 
+        // Some channels (e.g. iOS mail/clipboard) transform "=" into "3D" (quoted-printable). Clean that up.
         function normalizeReferralCode(raw) {
             if (!raw) return '';
             let value = raw.trim();
-
             return value;
         }
 
@@ -158,7 +147,7 @@
         function copyReferralIfNeeded(referralCode) {
             if (!referralCode) return;
             const statusEl = document.getElementById('status');
-            const text = referralCode; // App kutayotgan toza kodni nusxalash
+            const text = `referral:${referralCode}`;
             copyToClipboard(text).then(success => {
                 if (success) return;
                 // Telegram iOS WebView blocks programmatic copy without a tap; wait for first tap.
@@ -173,17 +162,17 @@
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
-            const rawReferral = urlParams.get('referral_code') || '';
-            const referralCode = normalizeReferralCode(rawReferral);
+            const referralCode = normalizeReferralCode(urlParams.get('referral_code'));
 
             if (referralCode && localStorage) localStorage.setItem('referral_code', referralCode);
 
 
             // Referral kod bor bo'lsa, bot'ga yuborish
-            const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
-            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
+            if (referralCode) {
+                const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 50)}`;
+            }
 
-            const { isMobile, isApple, isIOS, isAndroid, isSafari, isWebView, isDesktop } = getPlatform();
+            const { isMobile, isApple, isIOS, isAndroid } = getPlatform();
             let { storeUrl, deeplink } = buildUrls(referralCode, isApple);
 
             // if (isAndroid && referralCode) {
@@ -210,28 +199,12 @@
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
                         statusEl.textContent = 'Redirecting to store...';
-
-                        // In-app/webview (Telegram va boshqalar) da yopib tashlab store'ga o'tamiz.
-                        const stayOnPage = (isSafari || isDesktop) && !isWebView;
-                        if (stayOnPage) {
-                            window.location.href = storeUrl;
-                        } else {
-                            try { window.close(); } catch (e) { /* ignore */ }
-                            setTimeout(() => window.location.replace(storeUrl), 100);
-                        }
+                        window.close();
+                        setTimeout(() => window.location.href = storeUrl, 100);
                     }
                 }, 2500);
             } else {
-                setTimeout(() => {
-                    statusEl.textContent = 'Redirecting to store...';
-                    const stayOnPage = (isSafari || isDesktop) && !isWebView;
-                    if (stayOnPage) {
-                        window.location.href = storeUrl;
-                    } else {
-                        try { window.close(); } catch (e) { /* ignore */ }
-                        setTimeout(() => window.location.replace(storeUrl), 100);
-                    }
-                }, 1000);
+                setTimeout(() => { statusEl.textContent = 'Redirecting to store...'; window.location.href = storeUrl; }, 1000);
             }
 
             setTimeout(cleanup, 3000);
