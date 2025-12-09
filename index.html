@@ -207,6 +207,10 @@
             }
             setTimeout(() => {
                 window.location.href = storeUrl;
+                // Redirect dan keyin sahifani yopishga urinish (iOS da ishlamasligi mumkin, lekin urinib ko'ramiz)
+                setTimeout(() => {
+                    window.close();
+                }, 100);
             }, 500);
         }
 
@@ -263,6 +267,7 @@
                             statusEl.textContent = 'Redirecting to store...';
                             setTimeout(() => {
                                 window.location.href = storeUrl;
+                                setTimeout(() => window.close(), 100);
                             }, 100);
                         }
                     }
