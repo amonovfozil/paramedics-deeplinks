@@ -144,9 +144,9 @@
         function setupAppOpenDetection(callback) {
             let appOpened = false;
             const clearAndMark = () => { if (!appOpened) { appOpened = true; callback(); } };
+            // Faqat visibilitychange: ba’zi WebView/browserlarda blur tez ishlaydi va redirectni bloklaydi
             document.addEventListener('visibilitychange', () => document.hidden && clearAndMark());
-            window.addEventListener('blur', clearAndMark);
-            return () => { document.removeEventListener('visibilitychange', arguments.callee); window.removeEventListener('blur', arguments.callee); };
+            return () => { document.removeEventListener('visibilitychange', arguments.callee); };
         }
 
         function copyToClipboard(text) {
