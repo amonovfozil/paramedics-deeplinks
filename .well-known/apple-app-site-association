@@ -3,7 +3,14 @@
         "apps": [],
         "details": [
             {
-                "appID": " LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
+                "appID": "LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
+                "paths": [
+                    "/deeplink/*",
+                    "*"
+                ]
+            },
+            {
+                "appID": "LC8A86U9X2.com.paramedicsuz.paramedics",
                 "paths": [
                     "/deeplink/*",
                     "*"
@@ -14,7 +21,8 @@
     "appclips": {},
     "webcredentials": {
         "apps": [
-            " LC8A86U9X2.com.paramedics.paramedicsuzDoctor"
+            "LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
+            "LC8A86U9X2.com.paramedicsuz.paramedics"
         ]
     }
 }

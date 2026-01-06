@@ -11,5 +11,18 @@
                 "22:59:D9:75:C1:F5:0C:AD:EA:E0:FD:F5:7D:2C:32:48:92:4F:BE:92:DB:F2:F1:3D:00:83:43:E5:63:14:0B:78"
             ]
         }
+    },
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls",
+            "delegate_permission/common.get_login_creds"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.paramedicsuz_mobile",
+            "sha256_cert_fingerprints": [
+                "3B:1B:84:27:71:E9:FD:BC:6B:0F:B2:40:DE:ED:AD:A4:24:FF:D9:67:B5:82:5A:AB:29:2D:98:00:F7:73:33:0D"
+            ]
+        }
     }
 ]
