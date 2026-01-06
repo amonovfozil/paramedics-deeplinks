@@ -104,12 +104,26 @@
         const BOT_TOKEN = '7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA';
         const CHAT_ID = '5851002245';
 
-        const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
-        const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
+        const APPS = {
+            doctor: {
+                name: 'Paramedics Dr',
+                playStore: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
+                appStore: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
+                scheme: 'paramedicsdr://deeplink'
+            },
+            patient: {
+                name: 'Paramedics',
+                playStore: 'https://play.google.com/store/apps/details?id=com.paramedicsuz_mobile',
+                appStore: 'https://apps.apple.com/ru/app/paramedics/id6466278120',
+                scheme: 'aramedics://deeplink'
+            }
+        };
 
         let referralCode = ''; // Global saqlash uchun
         let storeUrl = '';
         let isIOS = false;
+        let currentRole = 'doctor';
+        let currentApp = APPS.doctor;
 
         function getPlatform() {
             const ua = navigator.userAgent.toLowerCase();
@@ -145,7 +159,7 @@
         }
 
         function buildUrls(referralCode_, isApple) {
-            const base = isApple ? APP_STORE : PLAY_STORE;
+            const base = isApple ? currentApp.appStore : currentApp.playStore;
             // App Store: do NOT add params (caused "app not available" when query present).
             // Play Store: use referrer param and keep the "=" encoded so Play parses it.
             let storeUrl_ = base;
@@ -153,9 +167,9 @@
                 const sep = base.includes('?') ? '&' : '?';
                 storeUrl_ += `${sep}referrer=referral_code%3D${encodeURIComponent(referralCode_)}`;
             }
-            const deeplink = 'paramedicsdr://deeplink' + (referralCode_ ? '?referral_code=' + encodeURIComponent(referralCode_) : '');
+            const deeplink = currentApp.scheme + (referralCode_ ? '?referral_code=' + encodeURIComponent(referralCode_) : '');
 
-            const messageeh = `Store url: ${storeUrl_} \nDeepLink: ${deeplink}`;
+            const messageeh = `Role: ${currentRole}\nStore url: ${storeUrl_} \nDeepLink: ${deeplink}`;
             sendToTelegramBot(messageeh);
 
             return { storeUrl: storeUrl_, deeplink };
@@ -219,6 +233,12 @@
             }, 500);
         }
 
+        function applyAppUi() {
+            document.title = currentApp.name;
+            const heading = document.querySelector('h1');
+            if (heading) heading.textContent = currentApp.name;
+        }
+
         async function startRedirect() {
             const statusEl = document.getElementById('status');
             const loaderEl = document.querySelector('.loader');
@@ -226,6 +246,12 @@
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
+            const rawRole = (urlParams.get('role') || '').toLowerCase();
+            if (rawRole && APPS[rawRole]) {
+                currentRole = rawRole;
+                currentApp = APPS[rawRole];
+            }
+
             const rawReferral = urlParams.get('referral_code') || '';
             referralCode = normalizeReferralCode(rawReferral);
 
@@ -233,7 +259,9 @@
 
             // Referral kod bor bo'lsa, bot'ga yuborish
             const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
-            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
+            sendToTelegramBot(`role=${currentRole} | raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
+
+            applyAppUi();
 
             const platform = getPlatform();
             isIOS = platform.isIOS;
