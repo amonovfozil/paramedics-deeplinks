@@ -1,26 +1,20 @@
 {
-  "applinks": {
-    "apps": [],
-    "details": [
-      {
-        "appID": "LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
-        "paths": [
-          "/doctor/*"
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": " LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
+                "paths": [
+                    "/deeplink/*",
+                    "*"
+                ]
+            }
         ]
-      },
-      {
-        "appID": "LC8A86U9X2.com.paramedicsuz.paramedics",
-        "paths": [
-          "/patient/*"
+    },
+    "appclips": {},
+    "webcredentials": {
+        "apps": [
+            " LC8A86U9X2.com.paramedics.paramedicsuzDoctor"
         ]
-      }
-    ]
-  },
-  "appclips": {},
-  "webcredentials": {
-    "apps": [
-      "LC8A86U9X2.com.paramedics.paramedicsuzDoctor",
-      "LC8A86U9X2.com.paramedicsuz.paramedics"
-    ]
-  }
+    }
 }

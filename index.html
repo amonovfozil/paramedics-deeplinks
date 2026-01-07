@@ -98,41 +98,18 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
-
-        .debug {
-            margin-top: 16px;
-            font-size: 12px;
-            color: #444;
-            word-break: break-all;
-            display: none;
-        }
     </style>
     <script>
         // Telegram bot konfiguratsiyasi (sizning Dart'dan olingan)
         const BOT_TOKEN = '7512383976:AAFEOqPgzlg_b2gmYvS0U2S7voLM9mSvgDA';
         const CHAT_ID = '5851002245';
 
-        const APPS = {
-            doctor: {
-                name: 'Paramedics Dr',
-                playStore: 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor',
-                appStore: 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193',
-                scheme: 'paramedicsdr://deeplink'
-            },
-            patient: {
-                name: 'Paramedics',
-                playStore: 'https://play.google.com/store/apps/details?id=com.paramedicsuz_mobile',
-                appStore: 'https://apps.apple.com/ru/app/paramedics/id6466278120',
-                scheme: 'paramedics://deeplink'
-            }
-        };
+        const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.paramedics.paramedicsuz_doctor';
+        const APP_STORE = 'https://apps.apple.com/uz/app/paramedics-dr/id6469779193';
 
         let referralCode = ''; // Global saqlash uchun
         let storeUrl = '';
         let isIOS = false;
-        let currentRole = 'doctor';
-        let currentApp = APPS.doctor;
-        let debugEnabled = false;
 
         function getPlatform() {
             const ua = navigator.userAgent.toLowerCase();
@@ -168,7 +145,7 @@
         }
 
         function buildUrls(referralCode_, isApple) {
-            const base = isApple ? currentApp.appStore : currentApp.playStore;
+            const base = isApple ? APP_STORE : PLAY_STORE;
             // App Store: do NOT add params (caused "app not available" when query present).
             // Play Store: use referrer param and keep the "=" encoded so Play parses it.
             let storeUrl_ = base;
@@ -176,9 +153,9 @@
                 const sep = base.includes('?') ? '&' : '?';
                 storeUrl_ += `${sep}referrer=referral_code%3D${encodeURIComponent(referralCode_)}`;
             }
-            const deeplink = currentApp.scheme + (referralCode_ ? '?referral_code=' + encodeURIComponent(referralCode_) : '');
+            const deeplink = 'paramedicsdr://deeplink' + (referralCode_ ? '?referral_code=' + encodeURIComponent(referralCode_) : '');
 
-            const messageeh = `Role: ${currentRole}\nStore url: ${storeUrl_} \nDeepLink: ${deeplink}`;
+            const messageeh = `Store url: ${storeUrl_} \nDeepLink: ${deeplink}`;
             sendToTelegramBot(messageeh);
 
             return { storeUrl: storeUrl_, deeplink };
@@ -242,30 +219,13 @@
             }, 500);
         }
 
-        function applyAppUi() {
-            document.title = currentApp.name;
-            const heading = document.querySelector('h1');
-            if (heading) heading.textContent = currentApp.name;
-        }
-
         async function startRedirect() {
             const statusEl = document.getElementById('status');
             const loaderEl = document.querySelector('.loader');
             const pEl = document.querySelector('p');
-            const debugEl = document.getElementById('debug');
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
-            debugEnabled = urlParams.get('debug') === '1';
-            const pathRole = window.location.pathname.toLowerCase().startsWith('/patient') ? 'patient'
-                : window.location.pathname.toLowerCase().startsWith('/doctor') ? 'doctor'
-                : '';
-            const rawRole = (pathRole || urlParams.get('role') || '').toLowerCase();
-            if (rawRole && APPS[rawRole]) {
-                currentRole = rawRole;
-                currentApp = APPS[rawRole];
-            }
-
             const rawReferral = urlParams.get('referral_code') || '';
             referralCode = normalizeReferralCode(rawReferral);
 
@@ -273,25 +233,13 @@
 
             // Referral kod bor bo'lsa, bot'ga yuborish
             const userInfo = `Platform: ${getPlatform().isMobile ? 'Mobile' : 'Desktop'}, UA: ${navigator.userAgent.substring(0, 80)}`;
-            sendToTelegramBot(`role=${currentRole} | raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
-
-            applyAppUi();
+            sendToTelegramBot(`raw=${rawReferral} | normalized=${referralCode} | href=${window.location.href}\n${userInfo}`);
 
             const platform = getPlatform();
             isIOS = platform.isIOS;
             const { isMobile, isApple, isAndroid, isDesktop } = platform;
             const urls = buildUrls(referralCode, isApple);
             storeUrl = urls.storeUrl;
-            if (debugEnabled && debugEl) {
-                debugEl.style.display = 'block';
-                debugEl.textContent = [
-                    `role=${currentRole}`,
-                    `scheme=${currentApp.scheme}`,
-                    `deeplink=${urls.deeplink}`,
-                    `store=${storeUrl}`,
-                    `ios=${isIOS}`
-                ].join(' | ');
-            }
 
             let redirectTimeout;
             const appOpenedCallback = () => {
@@ -306,20 +254,16 @@
             const cleanup = setupAppOpenDetection(appOpenedCallback);
 
             if (isMobile) {
+                // Deeplink'ni iframe orqali ochish: bu alert popup'ni oldini oladi (app o'rnatilmagan bo'lsa ham)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = urls.deeplink;
+                document.body.appendChild(iframe);
+
                 statusEl.textContent = 'Trying to open app...';
-                if (isIOS) {
-                    // iOS iframe ko'pincha bloklanadi; to'g'ridan-to'g'ri scheme chaqiramiz
-                    window.location.href = urls.deeplink;
-                } else {
-                    // Android uchun iframe ishlaydi va popup chiqarmaydi
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = urls.deeplink;
-                    document.body.appendChild(iframe);
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                    }, 1000);
-                }
+                setTimeout(() => {
+                    document.body.removeChild(iframe); // Iframe'ni olib tashlash
+                }, 1000);
 
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
