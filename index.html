@@ -257,7 +257,10 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             debugEnabled = urlParams.get('debug') === '1';
-            const rawRole = (urlParams.get('role') || '').toLowerCase();
+            const pathRole = window.location.pathname.toLowerCase().startsWith('/patient') ? 'patient'
+                : window.location.pathname.toLowerCase().startsWith('/doctor') ? 'doctor'
+                : '';
+            const rawRole = (pathRole || urlParams.get('role') || '').toLowerCase();
             if (rawRole && APPS[rawRole]) {
                 currentRole = rawRole;
                 currentApp = APPS[rawRole];
