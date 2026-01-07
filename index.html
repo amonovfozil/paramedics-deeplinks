@@ -98,6 +98,14 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+
+        .debug {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #444;
+            word-break: break-all;
+            display: none;
+        }
     </style>
     <script>
         // Telegram bot konfiguratsiyasi (sizning Dart'dan olingan)
@@ -124,6 +132,7 @@
         let isIOS = false;
         let currentRole = 'doctor';
         let currentApp = APPS.doctor;
+        let debugEnabled = false;
 
         function getPlatform() {
             const ua = navigator.userAgent.toLowerCase();
@@ -243,9 +252,11 @@
             const statusEl = document.getElementById('status');
             const loaderEl = document.querySelector('.loader');
             const pEl = document.querySelector('p');
+            const debugEl = document.getElementById('debug');
             statusEl.textContent = 'Opening app...';
 
             const urlParams = new URLSearchParams(window.location.search);
+            debugEnabled = urlParams.get('debug') === '1';
             const rawRole = (urlParams.get('role') || '').toLowerCase();
             if (rawRole && APPS[rawRole]) {
                 currentRole = rawRole;
@@ -268,6 +279,16 @@
             const { isMobile, isApple, isAndroid, isDesktop } = platform;
             const urls = buildUrls(referralCode, isApple);
             storeUrl = urls.storeUrl;
+            if (debugEnabled && debugEl) {
+                debugEl.style.display = 'block';
+                debugEl.textContent = [
+                    `role=${currentRole}`,
+                    `scheme=${currentApp.scheme}`,
+                    `deeplink=${urls.deeplink}`,
+                    `store=${storeUrl}`,
+                    `ios=${isIOS}`
+                ].join(' | ');
+            }
 
             let redirectTimeout;
             const appOpenedCallback = () => {
@@ -282,16 +303,20 @@
             const cleanup = setupAppOpenDetection(appOpenedCallback);
 
             if (isMobile) {
-                // Deeplink'ni iframe orqali ochish: bu alert popup'ni oldini oladi (app o'rnatilmagan bo'lsa ham)
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = urls.deeplink;
-                document.body.appendChild(iframe);
-
                 statusEl.textContent = 'Trying to open app...';
-                setTimeout(() => {
-                    document.body.removeChild(iframe); // Iframe'ni olib tashlash
-                }, 1000);
+                if (isIOS) {
+                    // iOS iframe ko'pincha bloklanadi; to'g'ridan-to'g'ri scheme chaqiramiz
+                    window.location.href = urls.deeplink;
+                } else {
+                    // Android uchun iframe ishlaydi va popup chiqarmaydi
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = urls.deeplink;
+                    document.body.appendChild(iframe);
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                }
 
                 redirectTimeout = setTimeout(() => {
                     if (statusEl.textContent !== 'App opened successfully!') {
